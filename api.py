@@ -1,5 +1,3 @@
-from webbrowser import get
-
 from flask import Flask
 from flask import Response
 from flask import send_from_directory
@@ -16,7 +14,6 @@ guard = flask_praetorian.Praetorian()
 cors = flask_cors.CORS()
 
 
-# A generic user model that might be used by an app powered by flask-praetorian
 class Users(db.Model):
     userId = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     username = db.Column(db.String(255), unique=True)
@@ -53,11 +50,11 @@ app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
 # Initialize the flask-praetorian instance for the app
 guard.init_app(app, Users)
 
+# Initialize environment variables
 DB_USERNAME = os.environ.get('DB_USERNAME')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 DB_URL = os.environ.get('DB_URL')
 DB_NAME = os.environ.get('DB_NAME')
-
 DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
 DEFAULT_ACCOUNT_PASSWORD =os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
 DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
@@ -101,22 +98,11 @@ def send_swagger_files(path):
     return send_from_directory('swagger', path)
 
 
+# Returns YAML documentation
 @app.route("/spec")
 def spec():
     file = open("swagger/index.html", "r")
     return file.read()
-
-
-@app.route("/role")
-@flask_praetorian.auth_required
-def role():
-    role = flask_praetorian.current_user().role
-    return get_default_response({"Role": str(role)})
-
-
-@app.route("/test")
-def test():
-    return get_default_response(body={'message': 'Test successful'})
 
 
 @app.route('/api/login', methods=['POST'])
