@@ -5,17 +5,58 @@ info:
   version: 1.0.0
 basePath: /
 schemes:
-  - https
   - http
 paths:
-  /test:
-    get:
-      summmary: Test endpoint
-      description: Test the endpoint
+  /api/login:
+    post:
+      summary: Authenticates user and returns Bearer login token
+      operationId: "Login"
+      consumes:
+      - "applicaiton/json"
+      produces:
+      - "applicaiton/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/auth"
       responses:
-        '200':
-          description: JSON message
-          content:
-            applicaiton/json:
-              schema:
-                type: string
+        "200":
+            schema:
+                $ref: "#/definitions/auth_token"
+        "401":
+            description: "Incorrect username or password"
+            schema:
+                $ref: "#/definitions/auth_wrong_password"
+                        
+definitions:
+    auth:
+        type: "object"
+        properties:
+            username:
+                type: "string"
+                example: "admin"
+            password: 
+                type: "string"
+                example: "password"
+
+    auth_token:
+        type: "object"
+        properties:
+            access_token:
+                type: "string"
+                example: "Generated access token"
+                
+    auth_wrong_password:
+        type: "object"
+        properties:
+            error:
+                type: "string"
+                example: "AuthenticationError"
+            message:
+                type: "string"
+                example: "The username and/or password are incorrect"
+            status_code:
+                type: "integer"
+                example: 401
