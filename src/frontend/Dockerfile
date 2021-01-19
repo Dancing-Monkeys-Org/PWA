@@ -1,4 +1,5 @@
 FROM node:latest as build
+RUN npm install -g create-react-app
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 COPY package.json /usr/src/app
@@ -6,7 +7,6 @@ COPY package.json /usr/src/app
 RUN npm install
 
 COPY . /usr/src/app
-RUN ls
 RUN npm run build
 
 FROM nginx:alpine
