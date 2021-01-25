@@ -1,7 +1,8 @@
 FROM node:latest as build
 
 WORKDIR /usr/src/app
- 
+
+CMD ["ls", "-la"]
 COPY package-lock.json ./
 COPY package.json ./
  
@@ -10,7 +11,7 @@ RUN npm install
 
 # Copies everything over to Docker environment
 COPY . .
-
+CMD ["ls", "-la"]
 RUN npm run build
 
 FROM nginx:alpine
