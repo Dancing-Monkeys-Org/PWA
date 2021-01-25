@@ -1,15 +1,18 @@
 FROM node:latest as build
 
-RUN npm install -g create-react-app
-RUN mkdir -p /usr/src/app
-
-COPY package.json /usr/src/app
-COPY . /usr/src/app
-
+# A directory within the virtualized Docker environment
+# Becomes more relevant when using Docker Compose later
 WORKDIR /usr/src/app
-
+ 
+# Copies package.json and package-lock.json to Docker environment
+COPY package*.json ./
+ 
+# Installs all node packages
 RUN npm install
 RUN npm run build
+ 
+# Copies everything over to Docker environment
+COPY . .
 
 FROM nginx:alpine
 COPY --from=build /usr/src/app/build /usr/share/nginx/html
