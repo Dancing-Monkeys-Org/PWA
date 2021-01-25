@@ -1,4 +1,4 @@
-FROM node:latest as build	FROM node:latest as build
+FROM node:latest as build
 
 RUN npm install -g create-react-app
 RUN mkdir -p /usr/src/app	
