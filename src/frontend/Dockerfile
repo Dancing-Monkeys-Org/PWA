@@ -2,8 +2,8 @@ FROM node:latest as build
 
 WORKDIR /usr/src/app
  
-
-COPY package*.json ./
+COPY package-lock.json ./
+COPY package.json ./
  
 # Installs all node packages
 RUN npm install
