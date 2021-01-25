@@ -1,22 +1,16 @@
-FROM node:latest as build
+# stage1 - build react app first 
+FROM node:12.16.1-alpine3.9 as build
+WORKDIR /app
+ENV PATH /app/node_modules/.bin:$PATH
+COPY ./package.json /app/
+RUN yarn --silent
+COPY . /app
+RUN yarn build
 
-WORKDIR /usr/src/app
-
-CMD ["ls", "-la"]
-COPY package-lock.json ./
-COPY package.json ./
- 
-# Installs all node packages
-RUN npm install
-
-# Copies everything over to Docker environment
-COPY . .
-CMD ["ls", "-la"]
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=build /usr/src/app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-
+# stage 2 - build the final image and copy the react build files
+FROM nginx:1.17.8-alpine
+COPY --from=build /app/build /usr/share/nginx/html
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx/conf.d
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
