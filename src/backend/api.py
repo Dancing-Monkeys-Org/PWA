@@ -162,9 +162,14 @@ def refresh():
 
 @app.route('/api/pickups', methods=['GET'])
 def getPickups():
+    statuses = ["unauthorised", "authorised"]
     arr = []
     with app.app_context():
-        arr.append(db.session.query(medicalpickups).count())
         for instance in db.session.query(medicalpickups):
-            arr.append(instance)
+            arr.append({"pickup_id" : instance.pickupid,
+                        "drug_quantity" : instance.drugquantity,
+                        "scheduled_date" : instance.scheduleddate,
+                        "review_date" : instance.reviewdate,
+                        "authorisation_status" : statuses[instance.authorisationstatus],
+                        "pickup_status" : instance.pickupstatus})
         return str(arr)
