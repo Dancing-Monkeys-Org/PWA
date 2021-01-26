@@ -93,13 +93,13 @@ def index():
     return file.read()
 
 
-@app.route('/swagger/<path:path>')
+@app.route('/api/swagger/<path:path>')
 def send_swagger_files(path):
     return send_from_directory('swagger', path)
 
 
 # Returns YAML documentation
-@app.route("/spec")
+@app.route("/api/spec")
 def spec():
     file = open("swagger/index.html", "r")
     return file.read()
