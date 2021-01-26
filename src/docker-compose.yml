@@ -3,7 +3,7 @@ services:
   frontend:
     restart: always
     container_name: frontend
-    image: mahew/pwa-frontend:lastest
+    image: mahew/pwa-frontend:latest
     ports:
       - 80:80
       - 443:443
