@@ -39,6 +39,28 @@ class Users(db.Model):
     def identity(self):
         return self.userId
 
+class medicalpickups(db.Model):
+    pickupid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    testid = db.Column(db.String(36))
+    patientid = db.Column(db.String(36))
+    drugid = db.Column(db.String(36))
+    drugquantity = db.Column(db.Integer())
+    scheduleddate = db.Column(db.Date())
+    reviewdate = db.Column(db.Date())
+    authorisationstatus = db.Column(db.Boolean())
+    pickupstatus = db.Column(db.String(25))
+
+    @classmethod
+    def lookup(cls, pickupId):
+        return cls.query.filter_by(pickupId=pickupId).one_or_none()
+
+    @classmethod
+    def identify(cls, pickupId):
+        return cls.query.get(pickupId)
+
+    @property
+    def identity(self):
+        return self.pickupId
 
 app = Flask(__name__, static_url_path='')
 
@@ -93,13 +115,13 @@ def index():
     return file.read()
 
 
-@app.route('/swagger/<path:path>')
+@app.route('/api/swagger/<path:path>')
 def send_swagger_files(path):
     return send_from_directory('swagger', path)
 
 
 # Returns YAML documentation
-@app.route("/spec")
+@app.route("/api/spec")
 def spec():
     file = open("swagger/index.html", "r")
     return file.read()
@@ -136,3 +158,17 @@ def refresh():
     new_token = guard.refresh_jwt_token(old_token)
     ret = {'access_token': new_token}
     return ret, 200
+
+@app.route('/api/pickups', methods=['GET'])
+def getPickups():
+    statuses = ["unauthorised", "authorised"]
+    arr = []
+    with app.app_context():
+        for instance in db.session.query(medicalpickups):
+            arr.append({"pickup_id" : instance.pickupid,
+                        "drug_quantity" : instance.drugquantity,
+                        "scheduled_date" : instance.scheduleddate,
+                        "review_date" : instance.reviewdate,
+                        "authorisation_status" : statuses[instance.authorisationstatus],
+                        "pickup_status" : instance.pickupstatus})
+        return str(arr)
