@@ -39,7 +39,6 @@ paths:
         "200":
             schema:
                 $ref: "#/definitions/pickupList"
-
                         
 definitions:
     auth:

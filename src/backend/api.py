@@ -62,7 +62,6 @@ class medicalpickups(db.Model):
     def identity(self):
         return self.pickupId
 
-
 app = Flask(__name__, static_url_path='')
 
 app.debug = True
