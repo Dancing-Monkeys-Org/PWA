@@ -1,10 +1,9 @@
 version: "3"
 services:
   frontend:
+    restart: always
     container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: mahew/pwa-frontend:lastest
     ports:
       - 80:80
       - 443:443
@@ -14,7 +13,7 @@ services:
   backend:
     restart: always
     container_name: backend
-    build: ./backend
+    image: mahew/pwa:latest
     expose:
       - 5000
     volumes:
@@ -23,3 +22,10 @@ services:
       - FLASK_ENV=development
       - FLASK_APP=api.py
       - FLASK_DEBUG=1
+      - DB_USERNAME=mastermonkey
+      - DB_PASSWORD=9PPHJJdMjs5vvkU
+      - DB_NAME=MonkeyDB
+      - DB_URL=pwa-db.cgrwyltiiuin.us-east-2.rds.amazonaws.com
+      - DEFAULT_ACCOUNT_USERNAME=admin
+      - DEFAULT_ACCOUNT_PASSWORD=MasterMonkey
+      - DEFAULT_ACCOUNT_ROLE=admin
