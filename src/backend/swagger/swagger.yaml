@@ -12,9 +12,9 @@ paths:
       summary: Authenticates user and returns Bearer login token
       operationId: "Login"
       consumes:
-      - "applicaiton/json"
+      - "application/json"
       produces:
-      - "applicaiton/json"
+      - "application/json"
       parameters:
       - in: "body"
         name: "body"
@@ -29,6 +29,16 @@ paths:
             description: "Incorrect username or password"
             schema:
                 $ref: "#/definitions/auth_wrong_password"
+  /api/pickups:
+    get:
+      summary: Returns list of medical pickups
+      operationId: getPickups
+      produces:
+      - "application/json"
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/pickupList"
                         
 definitions:
     auth:
@@ -60,3 +70,25 @@ definitions:
             status_code:
                 type: "integer"
                 example: 401
+
+    pickupList:
+        type: "object"
+        properties:
+          pickup_id:
+            type: "string"
+            example: "UUId of pickup"
+          drug_quantity:
+            type: "integer"
+            example: 3
+          scheduled_date:
+            type: "date"
+            example: "2021-01-26"
+          review_date:
+            type: "date"
+            example: "2021-01-26"
+          authorisation_status:
+            type: "string"
+            example: "authorised"
+          pickup_status:
+            type: "string"
+            example: "AWAITING_PICKUP"
