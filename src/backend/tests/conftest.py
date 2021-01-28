@@ -1,7 +1,4 @@
 import pytest
-import os
-from flask_sqlalchemy import SQLAlchemy
-import pytest_flask_sqlalchemy
 
 from api import app as _app
 from api import db as _db

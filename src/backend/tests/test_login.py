@@ -1,14 +1,4 @@
-import pytest
-import os
-import pytest_flask_sqlalchemy
-
 import api
-# from api import db
-
-from conftest import client
-import conftest
-
-from conftest import db
 
 
 def successful_login(client, db, username, password, role):
