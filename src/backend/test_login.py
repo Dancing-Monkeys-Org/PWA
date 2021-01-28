@@ -26,7 +26,6 @@ def login_bad_credentials(client, db, username, password, role):
                                  password=api.guard.hash_password(password),
                                  role=role))
 
-    # body = {"username": username + "---", "password": password + "----"}
     body = {"username": username, "password": password}
 
     return client.post('/api/login', json=body)
@@ -40,7 +39,6 @@ def test_successful_login(client, db):
 
 def test_login_bad_credentials(client, db):
     res = login_bad_credentials(client, db, "theusername", "pspaomdpasmdpomapsd", "admin")
-    # assert 1 == 1
     assert res.status_code == 200
 
 

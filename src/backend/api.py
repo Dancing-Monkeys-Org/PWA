@@ -89,6 +89,7 @@ def init():
 
 try:
     app = Flask(__name__, static_url_path='')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     app.debug = True
     app.config['SECRET_KEY'] = 'JUIANFuiBfdaukfbeaifuIUBUIB'
@@ -111,7 +112,7 @@ except:
 def get_default_response(body={}):
     res = Response()
     res.headers['Content-type'] = "application/json"
-    res.response = json.dumps(body)
+    res.data = json.dumps(body)
     return res
 
 
@@ -148,16 +149,6 @@ def login():
     user = guard.authenticate(username, password)
     ret = {'access_token': guard.encode_jwt_token(user)}
     return ret, 200
-
-
-@app.route('/api/getusers', methods=['GET'])
-def getusers():
-    # with app.app_context():
-    arr = []
-
-    for instance in db.session.query(Users):
-        arr.append(instance.username)
-    return get_default_response(arr)
 
 
 # Endpoint for unit tests to verify roles are working as expected
