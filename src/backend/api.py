@@ -39,6 +39,7 @@ class Users(db.Model):
     def identity(self):
         return self.userId
 
+
 class medicalpickups(db.Model):
     pickupid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     testid = db.Column(db.String(36))
@@ -62,44 +63,49 @@ class medicalpickups(db.Model):
     def identity(self):
         return self.pickupId
 
-app = Flask(__name__, static_url_path='')
 
-app.debug = True
-app.config['SECRET_KEY'] = 'JUIANFuiBfdaukfbeaifuIUBUIB'
-app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
-app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
+def init():
+    # Initialize the flask-praetorian instance for the app
+    guard.init_app(app, Users)
 
-# Initialize the flask-praetorian instance for the app
-guard.init_app(app, Users)
+    # Initialize a local database for the example
+    app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://" + DB_USERNAME + ":" + DB_PASSWORD + "@" + DB_URL + "/" + DB_NAME
+    db.init_app(app)
 
-# Initialize environment variables
-DB_USERNAME = os.environ.get('DB_USERNAME')
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
-DB_URL = os.environ.get('DB_URL')
-DB_NAME = os.environ.get('DB_NAME')
-DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
-DEFAULT_ACCOUNT_PASSWORD =os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
-DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
+    # Initializes CORS so that the api_tool can talk to the example app
+    cors.init_app(app)
 
-
-# Initialize a local database for the example
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://" + DB_USERNAME + ":" + DB_PASSWORD + "@" + DB_URL + "/" + DB_NAME
-db.init_app(app)
-
-# Initializes CORS so that the api_tool can talk to the example app
-cors.init_app(app)
+    # Add users for the example
+    with app.app_context():
+        db.create_all()
+        if db.session.query(Users).filter_by(username=DEFAULT_ACCOUNT_USERNAME).count() < 1:
+            db.session.add(Users(
+              username=DEFAULT_ACCOUNT_USERNAME,
+              password=guard.hash_password(DEFAULT_ACCOUNT_PASSWORD),
+              role=DEFAULT_ACCOUNT_USERNAME
+                ))
+        db.session.commit()
 
 
-# Add users for the example
-with app.app_context():
-    db.create_all()
-    if db.session.query(Users).filter_by(username=DEFAULT_ACCOUNT_USERNAME).count() < 1:
-        db.session.add(Users(
-          username=DEFAULT_ACCOUNT_USERNAME,
-          password=guard.hash_password(DEFAULT_ACCOUNT_PASSWORD),
-          role=DEFAULT_ACCOUNT_USERNAME
-            ))
-    db.session.commit()
+try:
+    app = Flask(__name__, static_url_path='')
+
+    app.debug = True
+    app.config['SECRET_KEY'] = 'JUIANFuiBfdaukfbeaifuIUBUIB'
+    app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
+    app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
+
+    # Initialize environment variables
+    DB_USERNAME = os.environ.get('DB_USERNAME')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD')
+    DB_URL = os.environ.get('DB_URL')
+    DB_NAME = os.environ.get('DB_NAME')
+    DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
+    DEFAULT_ACCOUNT_PASSWORD = os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
+    DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
+    init()
+except:
+    pass
 
 
 def get_default_response(body={}):
@@ -144,6 +150,24 @@ def login():
     return ret, 200
 
 
+@app.route('/api/getusers', methods=['GET'])
+def getusers():
+    # with app.app_context():
+    arr = []
+
+    for instance in db.session.query(Users):
+        arr.append(instance.username)
+    return get_default_response(arr)
+
+
+# Endpoint for unit tests to verify roles are working as expected
+@app.route('/api/test/auth', methods=['GET'])
+@flask_praetorian.auth_required
+def test_auth():
+    role = flask_praetorian.current_user().role
+    return get_default_response({"role": role})
+
+
 @app.route('/api/refresh', methods=['POST'])
 def refresh():
     """
@@ -159,16 +183,17 @@ def refresh():
     ret = {'access_token': new_token}
     return ret, 200
 
+
 @app.route('/api/pickups', methods=['GET'])
-def getPickups():
+def get_pickups():
     statuses = ["unauthorised", "authorised"]
     arr = []
     with app.app_context():
         for instance in db.session.query(medicalpickups):
-            arr.append({"pickup_id" : instance.pickupid,
-                        "drug_quantity" : instance.drugquantity,
-                        "scheduled_date" : instance.scheduleddate,
-                        "review_date" : instance.reviewdate,
-                        "authorisation_status" : statuses[instance.authorisationstatus],
-                        "pickup_status" : instance.pickupstatus})
+            arr.append({"pickup_id": instance.pickupid,
+                        "drug_quantity": instance.drugquantity,
+                        "scheduled_date": instance.scheduleddate,
+                        "review_date": instance.reviewdate,
+                        "authorisation_status": statuses[instance.authorisationstatus],
+                        "pickup_status": instance.pickupstatus})
         return str(arr)
