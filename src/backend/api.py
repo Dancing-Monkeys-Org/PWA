@@ -87,26 +87,24 @@ def init():
         db.session.commit()
 
 
-try:
-    app = Flask(__name__, static_url_path='')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Initialise flask app
+app = Flask(__name__, static_url_path='')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    app.debug = True
-    app.config['SECRET_KEY'] = 'JUIANFuiBfdaukfbeaifuIUBUIB'
-    app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
-    app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
+app.debug = True
+app.config['SECRET_KEY'] = 'JUIANFuiBfdaukfbeaifuIUBUIB'
+app.config['JWT_ACCESS_LIFESPAN'] = {'hours': 24}
+app.config['JWT_REFRESH_LIFESPAN'] = {'days': 30}
 
-    # Initialize environment variables
-    DB_USERNAME = os.environ.get('DB_USERNAME')
-    DB_PASSWORD = os.environ.get('DB_PASSWORD')
-    DB_URL = os.environ.get('DB_URL')
-    DB_NAME = os.environ.get('DB_NAME')
-    DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
-    DEFAULT_ACCOUNT_PASSWORD = os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
-    DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
-    init()
-except:
-    pass
+# Initialize environment variables
+DB_USERNAME = os.environ.get('DB_USERNAME')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+DB_URL = os.environ.get('DB_URL')
+DB_NAME = os.environ.get('DB_NAME')
+DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
+DEFAULT_ACCOUNT_PASSWORD = os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
+DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
+init()
 
 
 def get_default_response(body={}):

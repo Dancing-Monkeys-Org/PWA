@@ -1,41 +1,25 @@
-import api
-
-
-def successful_login(client, db, username, password, role):
-    db.session.add(api.Users(username=username,
-                             password=api.guard.hash_password(password),
-                             role=role))
-
-    body = {"username": username, "password": password}
-
-    return client.post('/api/login', json=body)
-
-
-def login_bad_credentials(client, db, username, password, role):
-    db.session.add(api.Users(username=username,
-                                 password=api.guard.hash_password(password),
-                                 role=role))
-
-    body = {"username": username, "password": password}
-
-    return client.post('/api/login', json=body)
+from . import auth
 
 
 def test_successful_login(client, db):
-    res = successful_login(client, db, "theusername", "pspaomdpasmdpomapsd", "admin")
-
+    res = auth.successful_login(client, db, "theusername", "pspaomdpasmdpomapsd", "admin")
     assert res.status_code == 200
 
 
-def test_login_bad_credentials(client, db):
-    res = login_bad_credentials(client, db, "theusername", "pspaomdpasmdpomapsd", "admin")
-    assert res.status_code == 200
+def test_login_bad_username(client, db):
+    res = auth.login_bad_username(client, db, "theusername", "pspaomdpasmdpomapsd", "admin")
+    assert res.status_code == 401
+
+
+def test_login_bad_password(client, db):
+    res = auth.login_bad_password(client, db, "theusername", "pspaomdpasmdpomapsd", "admin")
+    assert res.status_code == 401
 
 
 def test_role_correct(client, db):
     role = "testrole"
 
-    res = successful_login(client, db, "testUser", "sdnaslndlas", role)
+    res = auth.successful_login(client, db, "testUser", "sdnaslndlas", role)
 
     token = res.json['access_token']
 
@@ -45,6 +29,6 @@ def test_role_correct(client, db):
     assert res.json['role'] == role
 
 
-def test_auth(client, db):
+def test_auth(client):
     assert client.get("/api/test/auth").status_code == 401
     assert client.get("/api/test/auth", headers={"Authorization": "Bearer mlmlm"}).status_code == 401
