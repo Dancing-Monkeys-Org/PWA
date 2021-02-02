@@ -19,6 +19,7 @@ passlib==1.7.4
 pendulum==2.1.2
 py-buzz==1.0.3
 pytest==6.2.2
+pytest-dotenv==0.5.2
 pytest-flask-sqlalchemy==1.0.2
 PyJWT==1.7.1
 python-dateutil==2.8.1
