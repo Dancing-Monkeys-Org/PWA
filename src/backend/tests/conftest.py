@@ -2,7 +2,7 @@ import pytest
 
 from api import app as _app
 from api import db as _db
-
+from api import medicalpickups
 
 @pytest.fixture(scope='function')
 def client(app):
@@ -18,5 +18,6 @@ def app():
 
 @pytest.fixture(scope='function')
 def db(app):
+    _db.session.query(medicalpickups).delete()
     yield _db
 
