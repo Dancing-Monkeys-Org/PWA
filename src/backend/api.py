@@ -179,7 +179,12 @@ def get_pickups():
 
 @app.route('/api/pickup', methods=['GET'])
 def get_pickup():
-    instance = db.session.query(medicalpickups).filter_by(pickupid=request.args.get("pickup_id")).first()
+    query = db.session.query(medicalpickups).filter_by(pickupid=request.args.get("pickup_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found"}), 404
+
+    instance = query.first()
 
     return_value = {"pickup_id": instance.pickupid,
                     "test_id": instance.testid,
