@@ -179,10 +179,15 @@ def get_pickups():
 
 @app.route('/api/pickup', methods=['GET'])
 def get_pickup():
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
     query = db.session.query(medicalpickups).filter_by(pickupid=request.args.get("pickup_id"))
 
     if query.count() < 1:
-        return get_default_response({"message": "No pick up with that ID could be found"}), 404
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
 
     instance = query.first()
 

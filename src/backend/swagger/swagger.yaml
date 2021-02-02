@@ -87,6 +87,24 @@ definitions:
             status_code:
                 type: "integer"
                 example: 401
+    pick_up_paramater_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "The username and/or password are incorrect"
+            status_code:
+                type: "integer"
+                example: 401
+    pickup_bad_pickup_id:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "The username and/or password are incorrect"
+            status_code:
+                type: "integer"
+                example: 401
     pickup:
         type: "object"
         properties:
