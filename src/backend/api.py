@@ -48,7 +48,7 @@ class medicalpickups(db.Model):
     drugquantity = db.Column(db.Integer())
     scheduleddate = db.Column(db.Date())
     reviewdate = db.Column(db.Date())
-    authorisationstatus = db.Column(db.Boolean())
+    isauthorised = db.Column(db.Boolean())
     pickupstatus = db.Column(db.String(25))
 
     @classmethod
@@ -134,13 +134,6 @@ def spec():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    """
-    Logs a user in by parsing a POST request containing user credentials and
-    issuing a JWT token.
-    .. example::
-       $ curl http://localhost:5000/api/login -X POST \
-         -d '{"username":"Yasoob","password":"strongpassword"}'
-    """
     req = flask.request.get_json(force=True)
     username = req.get('username', None)
     password = req.get('password', None)
@@ -159,13 +152,6 @@ def test_auth():
 
 @app.route('/api/refresh', methods=['POST'])
 def refresh():
-    """
-    Refreshes an existing JWT by creating a new one that is a copy of the old
-    except that it has a refrehsed access expiration.
-    .. example::
-       $ curl http://localhost:5000/api/refresh -X GET \
-         -H "Authorization: Bearer <your_token>"
-    """
     print("refresh request")
     old_token = flask.request.get_data()
     new_token = guard.refresh_jwt_token(old_token)
@@ -174,6 +160,7 @@ def refresh():
 
 
 @app.route('/api/pickups', methods=['GET'])
+@flask_praetorian.auth_required
 def get_pickups():
     statuses = ["unauthorised", "authorised"]
     arr = []
@@ -181,8 +168,8 @@ def get_pickups():
         for instance in db.session.query(medicalpickups):
             arr.append({"pickup_id": instance.pickupid,
                         "drug_quantity": instance.drugquantity,
-                        "scheduled_date": instance.scheduleddate,
-                        "review_date": instance.reviewdate,
-                        "authorisation_status": statuses[instance.authorisationstatus],
+                        "scheduled_date": str(instance.scheduleddate),
+                        "review_date": str(instance.reviewdate),
+                        "is_authorised": statuses[instance.isauthorised],
                         "pickup_status": instance.pickupstatus})
-        return str(arr)
+        return get_default_response(arr)

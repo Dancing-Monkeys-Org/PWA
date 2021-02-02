@@ -29,3 +29,6 @@ def login_bad_password(client, db, username, password, role):
     body = {"username": username, "password": password + "-"}
 
     return client.post('/api/login', json=body)
+
+def get_access_token(client, db, username, password, role):
+    return successful_login(client, db, username, password, role).json['access_token']
