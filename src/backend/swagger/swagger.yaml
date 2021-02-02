@@ -39,6 +39,23 @@ paths:
         "200":
             schema:
                 $ref: "#/definitions/pickupList"
+  /api/pickup:
+    get:
+      summary: Returns list of medical pickups
+      operationId: getPickup
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: pickup_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/pickup"
                         
 definitions:
     auth:
@@ -70,25 +87,54 @@ definitions:
             status_code:
                 type: "integer"
                 example: 401
-
+    pickup:
+        type: "object"
+        properties:
+          pickup_id:
+              type: "string"
+              example: "UUId of pickup"
+          test_id:
+              type: "string"
+              example: "UUId of test"
+          patient_id:
+              type: "string"
+              example: "UUId of patient"
+          drug_id:
+              type: "string"
+              example: "UUId of patient"
+          drug_quantity:
+              type: "integer"
+              example: 3
+          scheduled_date:
+              type: "date"
+              example: "2021-01-26"
+          review_date:
+              type: "date"
+              example: "2021-01-26"
+          authorisation_status:
+              type: "string"
+              example: "authorised"
+          pickup_status:
+              type: "string"
+              example: "AWAITING_PICKUP"
     pickupList:
         type: "object"
         properties:
           pickup_id:
             type: "string"
             example: "UUId of pickup"
-          drug_quantity:
-            type: "integer"
-            example: 3
+            drug_quantity:
+              type: "integer"
+              example: 3
           scheduled_date:
-            type: "date"
-            example: "2021-01-26"
+              type: "date"
+              example: "2021-01-26"
           review_date:
-            type: "date"
-            example: "2021-01-26"
+              type: "date"
+              example: "2021-01-26"
           authorisation_status:
-            type: "string"
-            example: "authorised"
+              type: "string"
+              example: "authorised"
           pickup_status:
-            type: "string"
-            example: "AWAITING_PICKUP"
+              type: "string"
+              example: "AWAITING_PICKUP"
