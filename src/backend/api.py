@@ -178,6 +178,7 @@ def get_pickups():
 
 
 @app.route('/api/pickup', methods=['GET'])
+@flask_praetorian.auth_required
 def get_pickup():
     if request.args.get("pickup_id") is None:
         return get_default_response({"message": "Parameter required: pickup_id",
