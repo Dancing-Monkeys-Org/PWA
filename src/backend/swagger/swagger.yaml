@@ -134,6 +134,24 @@ definitions:
             status_code:
                 type: "integer"
                 example: 404
+    contact_parameter_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Parameter required: contact_id"
+            status_code:
+                type: "integer"
+                example: 400
+    contact_id_not_found:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "No contact up with that ID could be found"
+            status_code:
+                type: "integer"
+                example: 404
     test_id_not_found:
         type: "object"
         properties:
