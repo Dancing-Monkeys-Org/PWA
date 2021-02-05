@@ -111,6 +111,24 @@ definitions:
             status_code:
                 type: "integer"
                 example: 404
+    test_id_not_found:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "No test with that ID could be found"
+            status_code:
+                type: "integer"
+                example: 404
+    test_id_parameter_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Parameter required: pickup_id"
+            status_code:
+                type: "integer"
+                example: 400
     pickup:
         type: "object"
         properties:
