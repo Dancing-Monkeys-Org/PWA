@@ -4,6 +4,7 @@ from . import auth
 def test_not_authorised(client):
     res = client.get("/api/pickup")
     assert res.status_code == 401
+    assert "pickup_status" not in str(res.json)
 
 
 def test_pickup_no_pickup_id(client, db):
