@@ -339,3 +339,4 @@ cython_debug/
 
 # Local script for running Flask in PyCharm
 run.bat
+src/frontend/node_modules/
