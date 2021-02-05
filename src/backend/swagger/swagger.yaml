@@ -62,6 +62,29 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/pickup_id_not_found"
+  /api/test:
+    get:
+      summary: Returns test with provided test ID
+      operationId: getTest
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: test_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/test"
+        "400":
+            schema:
+                $ref: "#/definitions/test_id_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/test_id_not_found"
                         
 definitions:
     auth:
@@ -125,7 +148,7 @@ definitions:
         properties:
             message:
                 type: "string"
-                example: "Parameter required: pickup_id"
+                example: "Parameter required: test_id"
             status_code:
                 type: "integer"
                 example: 400
@@ -134,16 +157,16 @@ definitions:
         properties:
           pickup_id:
               type: "string"
-              example: "UUId of pickup"
+              example: "UUID of pickup"
           test_id:
               type: "string"
-              example: "UUId of test"
+              example: "UUID of test"
           patient_id:
               type: "string"
-              example: "UUId of patient"
+              example: "UUID of patient"
           drug_id:
               type: "string"
-              example: "UUId of patient"
+              example: "UUID of patient"
           drug_quantity:
               type: "integer"
               example: 3
@@ -164,10 +187,10 @@ definitions:
         properties:
           test_id:
               type: "string"
-              example: "UUId of test"
+              example: "UUID of test"
           drug_id:
               type: "string"
-              example: "UUId of drug"
+              example: "UUID of drug"
           status:
               type: "string"
               example: "COMPLETED"
@@ -176,7 +199,7 @@ definitions:
         properties:
           pickup_id:
             type: "string"
-            example: "UUId of pickup"
+            example: "UUID of pickup"
             drug_quantity:
               type: "integer"
               example: 3
