@@ -67,7 +67,48 @@ class medicalpickups(db.Model):
         return self.pickupId
 
 
+class contactdetails(db.Model):
+    contactdetailid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    phonenumber = db.Column(db.String(36))
+    emailaddress = db.Column(db.String(36))
+    addressline1 = db.Column(db.String(255))
+    addressline2 = db.Column(db.String(255))
+    addressline3 = db.Column(db.String(255))
+    addressline4 = db.Column(db.String(255))
+    postcode = db.Column(db.String(255))
+
+    @classmethod
+    def lookup(cls, contactdetailid):
+        return cls.query.filter_by(pickupId=contactdetailid).one_or_none()
+
+    @classmethod
+    def identify(cls, contactdetailid):
+        return cls.query.get(contactdetailid)
+
+    @property
+    def identity(self):
+        return self.contactdetailid
+
+
 class tests(db.Model):
+    testid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    drugid = db.Column(db.String(36))
+    status = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, testid):
+        return cls.query.filter_by(pickupId=testid).one_or_none()
+
+    @classmethod
+    def identify(cls, testid):
+        return cls.query.get(testid)
+
+    @property
+    def identity(self):
+        return self.testid
+
+
+class patients(db.Model):
     testid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     drugid = db.Column(db.String(36))
     status = db.Column(db.String(36))
@@ -242,6 +283,35 @@ def get_test():
                     "test_id": instance.testid,
                     "drug_id": instance.drugid,
                     "status": instance.status,
+    }
+
+    return get_default_response(return_value)
+
+
+@app.route('/api/contact', methods=['GET'])
+@flask_praetorian.auth_required
+def get_contact():
+    if request.args.get("contact_id") is None:
+        return get_default_response({"message": "Parameter required: contact_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(contactdetails).filter_by(contactdetailid=request.args.get("contact_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No contact with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "contact_id": instance.contactdetailid,
+        "phone_number": instance.phonenumber,
+        "email_address": instance.emailaddress,
+        "address_line_1": instance.addressline1,
+        "address_line_2": instance.addressline2,
+        "address_line_3": instance.addressline3,
+        "address_line_4": instance.addressline4,
+        "postcode": instance.postcode,
     }
 
     return get_default_response(return_value)
