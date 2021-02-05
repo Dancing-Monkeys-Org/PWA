@@ -69,13 +69,13 @@ class medicalpickups(db.Model):
 
 class contactdetails(db.Model):
     contactdetailid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    phonenumber = db.Column(db.String(36))
-    emailaddress = db.Column(db.String(36))
+    phonenumber = db.Column(db.String(255))
+    emailaddress = db.Column(db.String(255))
     addressline1 = db.Column(db.String(255))
     addressline2 = db.Column(db.String(255))
     addressline3 = db.Column(db.String(255))
     addressline4 = db.Column(db.String(255))
-    postcode = db.Column(db.String(255))
+    postcode = db.Column(db.String(7))
 
     @classmethod
     def lookup(cls, contactdetailid):

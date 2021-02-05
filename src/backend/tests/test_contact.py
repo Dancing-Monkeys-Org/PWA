@@ -58,15 +58,15 @@ def test_contact_id_not_found(client, db):
 def test_retrieve_contact(client, db):
     # Record that should not be returned
     db.session.execute(
-        'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
+        'INSERT INTO contactdetails () VALUES ("contactDetailUUID", "12345678910", "email1", "addressline11", null,'
         ' "addressline31", "addressline41", "ABC DEF")')
     # Record that should be returned
     db.session.execute(
-        'INSERT INTO contactdetails () VALUES ("contactDetailUUID2", 01987654321, "email2", "addressline12", null,'
+        'INSERT INTO contactdetails () VALUES ("contactDetailUUID2", "01987654321", "email2", "addressline12", null,'
         ' "addressline32", "addressline42", "DEF ABC")')
     # Record that should not be returned
     db.session.execute(
-        'INSERT INTO contactdetails () VALUES ("contactDetailUUID3", 07123456789, "email1", "addressline13", null,'
+        'INSERT INTO contactdetails () VALUES ("contactDetailUUID3", "07123456789", "email1", "addressline13", null,'
         ' "addressline34", "addressline44", "AA1 1AA")')
 
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
