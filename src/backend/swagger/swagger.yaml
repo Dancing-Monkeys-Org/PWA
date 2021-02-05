@@ -141,6 +141,18 @@ definitions:
           pickup_status:
               type: "string"
               example: "AWAITING_PICKUP"
+    test:
+        type: "object"
+        properties:
+          test_id:
+              type: "string"
+              example: "UUId of test"
+          drug_id:
+              type: "string"
+              example: "UUId of drug"
+          status:
+              type: "string"
+              example: "COMPLETED"
     pickupList:
         type: "object"
         properties:
