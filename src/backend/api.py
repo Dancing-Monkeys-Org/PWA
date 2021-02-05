@@ -67,6 +67,24 @@ class medicalpickups(db.Model):
         return self.pickupId
 
 
+class tests(db.Model):
+    testid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    drugid = db.Column(db.String(36))
+    status = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, testid):
+        return cls.query.filter_by(pickupId=testid).one_or_none()
+
+    @classmethod
+    def identify(cls, testid):
+        return cls.query.get(testid)
+
+    @property
+    def identity(self):
+        return self.testid
+
+
 def init():
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, Users)
@@ -201,5 +219,29 @@ def get_pickup():
                     "review_date": str(instance.reviewdate),
                     "is_authorised": statuses[instance.isauthorised],
                     "pickup_status": instance.pickupstatus}
+
+    return get_default_response(return_value)
+
+
+@app.route('/api/test', methods=['GET'])
+@flask_praetorian.auth_required
+def get_test():
+    if request.args.get("test_id") is None:
+        return get_default_response({"message": "Parameter required: test_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(tests).filter_by(testid=request.args.get("test_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No test with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+                    "test_id": instance.testid,
+                    "drug_id": instance.drugid,
+                    "status": instance.status,
+    }
 
     return get_default_response(return_value)
