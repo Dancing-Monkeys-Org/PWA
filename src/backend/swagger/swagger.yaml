@@ -194,6 +194,33 @@ definitions:
           status:
               type: "string"
               example: "COMPLETED"
+    contact:
+        type: "object"
+        properties:
+          contact_id:
+              type: "string"
+              example: "UUID of contact"
+          phone_number:
+              type: "string"
+              example: "07123456789"
+          email_address:
+              type: "string"
+              example: "gp@nhs.gov"
+          address_line_1:
+            type: "string"
+            example: "Address line 1"
+          address_line_2:
+            type: "string"
+            example: "Address line 2"
+          address_line_3:
+            type: "string"
+            example: "Address line 3"
+          address_line_4:
+            type: "string"
+            example: "Address line 4"
+          postcode:
+            type: "string"
+            example: "NG11 8NS"
     pickupList:
         type: "object"
         properties:
