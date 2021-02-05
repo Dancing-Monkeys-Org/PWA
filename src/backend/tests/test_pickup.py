@@ -56,7 +56,7 @@ def test_pickup_id_not_found(client, db):
     assert res.status_code == 404
 
 
-def test_pickup_pickup(client, db):
+def test_pickup(client, db):
     # Records to accommodate for foreign key constraints
     db.session.execute(
         'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
