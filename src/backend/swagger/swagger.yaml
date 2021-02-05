@@ -85,6 +85,29 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/test_id_not_found"
+  /api/contact:
+    get:
+      summary: Returns contact with provided contact ID
+      operationId: getContact
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: contact_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/contact"
+        "400":
+            schema:
+                $ref: "#/definitions/contact_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/contact_id_not_found"
                         
 definitions:
     auth:
