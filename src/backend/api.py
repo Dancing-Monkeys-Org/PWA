@@ -338,3 +338,27 @@ def get_contact():
     }
 
     return get_default_response(return_value)
+
+
+@app.route('/api/gp', methods=['GET'])
+@flask_praetorian.auth_required
+def get_gp():
+    if request.args.get("gp_id") is None:
+        return get_default_response({"message": "Parameter required: gp_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(gps).filter_by(gpid=request.args.get("gp_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No gp with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "gp_id": instance.gpid,
+        "name": instance.name,
+        "contact_id": instance.contactdetailid
+    }
+
+    return get_default_response(return_value)
