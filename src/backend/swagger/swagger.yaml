@@ -131,6 +131,29 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/gp_id_not_found"
+  /api/patient:
+    get:
+      summary: Returns patient with provided patient ID
+      operationId: getPatient
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: patient_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/patient"
+        "400":
+            schema:
+                $ref: "#/definitions/patient_id_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/patient_id_not_found"
                         
 definitions:
     auth:
