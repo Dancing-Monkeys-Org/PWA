@@ -383,6 +383,18 @@ definitions:
           contact_id:
               type: "string"
               example: "UUID of contact"
+    sensitivity:
+        type: "object"
+        properties:
+          sensitivity_id:
+              type: "string"
+              example: "UUID of sensitivity"
+          name:
+              type: "string"
+              example: "Penicillin allergy"
+          description:
+              type: "string"
+              example: "Allergic to Penicillin"
     pickupList:
         type: "object"
         properties:
