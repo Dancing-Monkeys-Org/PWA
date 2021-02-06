@@ -275,6 +275,24 @@ definitions:
             status_code:
                 type: "integer"
                 example: 400
+    sensitivity_id_not_found:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "No sensitivity with that ID could be found"
+            status_code:
+                type: "integer"
+                example: 404
+    sensitivity_id_parameter_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Parameter required: sensitivity_id"
+            status_code:
+                type: "integer"
+                example: 400
     pickup:
         type: "object"
         properties:
