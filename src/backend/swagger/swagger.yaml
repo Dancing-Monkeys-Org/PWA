@@ -315,6 +315,33 @@ definitions:
           contact_id:
               type: "string"
               example: "UUID of contact"
+    patient:
+        type: "object"
+        properties:
+          patient_id:
+              type: "string"
+              example: "UUID of patient"
+          gp_id:
+              type: "string"
+              example: "UUID of GP"
+          sensitivity_id:
+              type: "string"
+              example: "UUID of sensitivity"
+          forename:
+              type: "string"
+              example: "John"
+          surname:
+              type: "string"
+              example: "Smith"
+          sex:
+              type: "string"
+              example: "M"
+          age:
+              type: "string"
+              example: "51"
+          contact_id:
+              type: "string"
+              example: "UUID of contact"
     pickupList:
         type: "object"
         properties:
