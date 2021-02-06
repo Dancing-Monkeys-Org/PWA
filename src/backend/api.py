@@ -149,6 +149,43 @@ class gps(db.Model):
         return self.testid
 
 
+class sensitivities(db.Model):
+    sensitivityid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(255))
+    description = db.Column(db.String(255))
+
+    @classmethod
+    def lookup(cls, sensitivityid):
+        return cls.query.filter_by(pickupId=sensitivityid).one_or_none()
+
+    @classmethod
+    def identify(cls, sensitivityid):
+        return cls.query.get(sensitivityid)
+
+    @property
+    def identity(self):
+        return self.sensitivityid
+
+
+class testitems(db.Model):
+    testitemid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    testid = db.Column(db.String(36))
+    name = db.Column(db.String(255))
+    status = db.Column(db.String(25))
+
+    @classmethod
+    def lookup(cls, testitemid):
+        return cls.query.filter_by(pickupId=testitemid).one_or_none()
+
+    @classmethod
+    def identify(cls, testitemid):
+        return cls.query.get(testitemid)
+
+    @property
+    def identity(self):
+        return self.testitemid
+
+
 def init():
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, Users)
@@ -391,3 +428,4 @@ def get_patient():
     }
 
     return get_default_response(return_value)
+
