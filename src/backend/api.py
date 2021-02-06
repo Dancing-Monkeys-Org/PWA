@@ -21,7 +21,7 @@ class Users(db.Model):
     userId = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     username = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
-    role = db.Column(db.String(255))
+    role = db.Column(db.String(25))
 
     @property
     def rolenames(self):
@@ -93,7 +93,7 @@ class contactdetails(db.Model):
 class tests(db.Model):
     testid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     drugid = db.Column(db.String(36))
-    status = db.Column(db.String(36))
+    status = db.Column(db.String(25))
 
     @classmethod
     def lookup(cls, testid):
@@ -109,9 +109,32 @@ class tests(db.Model):
 
 
 class patients(db.Model):
-    testid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    drugid = db.Column(db.String(36))
-    status = db.Column(db.String(36))
+    patientid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    gpid = db.Column(db.String(36))
+    sensitivityid = db.Column(db.String(36))
+    forename = db.Column(db.String(255))
+    surname = db.Column(db.String(255))
+    sex = db.Column(db.String(1))
+    age = db.Column(db.Integer())
+    contactdetailid = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, patientid):
+        return cls.query.filter_by(pickupId=patientid).one_or_none()
+
+    @classmethod
+    def identify(cls, patientid):
+        return cls.query.get(patientid)
+
+    @property
+    def identity(self):
+        return self.patientid
+
+
+class gps(db.Model):
+    gpid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(255))
+    contactdetailid = db.Column(db.String(36))
 
     @classmethod
     def lookup(cls, testid):
