@@ -234,6 +234,24 @@ definitions:
             status_code:
                 type: "integer"
                 example: 400
+    patient_id_not_found:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "No patient with that ID could be found"
+            status_code:
+                type: "integer"
+                example: 404
+    patient_id_parameter_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Parameter required: patient_id"
+            status_code:
+                type: "integer"
+                example: 400
     pickup:
         type: "object"
         properties:
