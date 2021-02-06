@@ -429,3 +429,27 @@ def get_patient():
 
     return get_default_response(return_value)
 
+
+@app.route('/api/sensitivity', methods=['GET'])
+@flask_praetorian.auth_required
+def get_sensitivity():
+    if request.args.get("sensitivity_id") is None:
+        return get_default_response({"message": "Parameter required: sensitivity_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(sensitivities).filter_by(sensitivityid=request.args.get("sensitivity_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No sensitivity with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "sensitivity_id": instance.sensitivityid,
+        "name": instance.name,
+        "description": instance.description
+    }
+
+    return get_default_response(return_value)
+
