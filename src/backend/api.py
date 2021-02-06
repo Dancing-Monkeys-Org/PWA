@@ -362,3 +362,32 @@ def get_gp():
     }
 
     return get_default_response(return_value)
+
+
+@app.route('/api/patient', methods=['GET'])
+@flask_praetorian.auth_required
+def get_patient():
+    if request.args.get("patient_id") is None:
+        return get_default_response({"message": "Parameter required: patient_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(patients).filter_by(patientid=request.args.get("patient_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No patient with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "patient_id": instance.patientid,
+        "gp_id": instance.gpid,
+        "sensitivity_id": instance.sensitivityid,
+        "forename": instance.forename,
+        "surname": instance.surname,
+        "sex": instance.sex,
+        "age": instance.age,
+        "contact_id": instance.contactdetailid,
+    }
+
+    return get_default_response(return_value)
