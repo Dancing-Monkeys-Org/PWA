@@ -262,6 +262,18 @@ definitions:
           postcode:
             type: "string"
             example: "NG11 8NS"
+    gp:
+        type: "object"
+        properties:
+          gp_id:
+              type: "string"
+              example: "UUID of GP"
+          name:
+              type: "string"
+              example: "Monkey medical centre"
+          contact_id:
+              type: "string"
+              example: "UUID of contact"
     pickupList:
         type: "object"
         properties:
