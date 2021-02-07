@@ -154,6 +154,29 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/patient_id_not_found"
+  /api/sensitivity:
+    get:
+      summary: Returns sensitivity with provided sensitivity ID
+      operationId: getSensitivity
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: sensitivity_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/sensitivity"
+        "400":
+            schema:
+                $ref: "#/definitions/sensitivity_id_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/sensitivity_id_not_found"
                         
 definitions:
     auth:
