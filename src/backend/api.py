@@ -462,11 +462,18 @@ def get_test_items():
                                      "status_code": 400}), 400
 
     query = db.session.query(testitems).filter_by(testid=request.args.get("test_id"))
+
+    if db.session.query(tests).filter_by(testid=request.args.get("test_id")).count() < 1:
+        return get_default_response({"message": "No test with provided test ID exists",
+                                     "status_code": 404}), 404
+
+
     arr = []
     for instance in query:
         arr.append({"test_item_id": instance.testitemid,
                     "test_id": instance.testid,
                     "name": str(instance.name),
                     "status": str(instance.status)})
+
 
     return get_default_response({"data": arr})

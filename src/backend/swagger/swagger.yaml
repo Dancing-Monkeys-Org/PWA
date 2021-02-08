@@ -196,10 +196,10 @@ paths:
                 $ref: "#/definitions/testItemList"
         "400":
             schema:
-                $ref: "#/definitions/sensitivity_id_parameter_required"
+                $ref: "#/definitions/test_items_id_parameter_required"
         "404":
             schema:
-                $ref: "#/definitions/sensitivity_id_not_found"
+                $ref: "#/definitions/test_items_test_id_not_found"
                         
 definitions:
     auth:
@@ -335,7 +335,25 @@ definitions:
         properties:
             message:
                 type: "string"
-                example: "Parameter required: sensitivity_id"
+                example: "Parameter required: test_id"
+            status_code:
+                type: "integer"
+                example: 400
+    test_items_test_id_not_found:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "No test with provided test ID exists"
+            status_code:
+                type: "integer"
+                example: 404
+    test_items_id_parameter_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Parameter required: test_id"
             status_code:
                 type: "integer"
                 example: 400
