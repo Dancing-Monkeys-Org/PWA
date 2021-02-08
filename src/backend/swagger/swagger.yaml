@@ -177,6 +177,29 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/sensitivity_id_not_found"
+  /api/test/items:
+    get:
+      summary: Returns test items that belong to a specific test
+      operationId: getTestItems
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: test_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/testItemList"
+        "400":
+            schema:
+                $ref: "#/definitions/sensitivity_id_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/sensitivity_id_not_found"
                         
 definitions:
     auth:
@@ -436,6 +459,21 @@ definitions:
           description:
               type: "string"
               example: "Allergic to Penicillin"
+    testItem:
+        type: "object"
+        properties:
+          test_item_id:
+              type: "string"
+              example: "UUID of test item"
+          test_id:
+              type: "string"
+              example: "UUID of test item"
+          name:
+              type: "string"
+              example: "blood work 1"
+          status:
+              type: "string"
+              example: "COMPLETE"
     pickupList:
         type: "object"
         properties:
@@ -457,3 +495,20 @@ definitions:
           pickup_status:
               type: "string"
               example: "AWAITING_PICKUP"
+    testItemList:
+        type: array
+        items:
+          type: "object"
+          properties:
+            test_item_id:
+              type: "string"
+              example: "UUID of test item"
+            test_id:
+              type: "string"
+              example: "UUID of test item"
+            name:
+              type: "string"
+              example: "blood work 1"
+            status:
+              type: "string"
+              example: "COMPLETE"
