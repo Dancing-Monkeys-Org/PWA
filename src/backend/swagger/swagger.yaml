@@ -180,6 +180,7 @@ paths:
   /api/test/items:
     get:
       summary: Returns test items that belong to a specific test
+      description: Returns test items that belong to a specific test. If no test items exist for a test then an empty list is returned. If test_id does not exsist then 404 is returned
       operationId: getTestItems
       produces:
       - "application/json"
