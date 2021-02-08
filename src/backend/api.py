@@ -467,13 +467,12 @@ def get_test_items():
         return get_default_response({"message": "No test with provided test ID exists",
                                      "status_code": 404}), 404
 
-
     arr = []
+
     for instance in query:
         arr.append({"test_item_id": instance.testitemid,
                     "test_id": instance.testid,
                     "name": str(instance.name),
                     "status": str(instance.status)})
 
-
-    return get_default_response({"data": arr})
+    return get_default_response(arr)
