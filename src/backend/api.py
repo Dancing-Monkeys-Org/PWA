@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import Response
 from flask import send_from_directory
+from flask import request
 import flask
 import flask_sqlalchemy
 import flask_praetorian
@@ -8,6 +9,8 @@ import flask_cors
 import json
 import os
 import uuid
+
+statuses = ["unauthorised", "authorised"]
 
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
@@ -162,7 +165,6 @@ def refresh():
 @app.route('/api/pickups', methods=['GET'])
 @flask_praetorian.auth_required
 def get_pickups():
-    statuses = ["unauthorised", "authorised"]
     arr = []
     with app.app_context():
         for instance in db.session.query(medicalpickups):
@@ -173,3 +175,31 @@ def get_pickups():
                         "is_authorised": statuses[instance.isauthorised],
                         "pickup_status": instance.pickupstatus})
         return get_default_response(arr)
+
+
+@app.route('/api/pickup', methods=['GET'])
+@flask_praetorian.auth_required
+def get_pickup():
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=request.args.get("pickup_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {"pickup_id": instance.pickupid,
+                    "test_id": instance.testid,
+                    "patient_id": instance.patientid,
+                    "drug_id": instance.drugid,
+                    "drug_quantity": instance.drugquantity,
+                    "scheduled_date": str(instance.scheduleddate),
+                    "review_date": str(instance.reviewdate),
+                    "is_authorised": statuses[instance.isauthorised],
+                    "pickup_status": instance.pickupstatus}
+
+    return get_default_response(return_value)
