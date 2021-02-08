@@ -453,3 +453,20 @@ def get_sensitivity():
 
     return get_default_response(return_value)
 
+
+@app.route('/api/test/items', methods=['GET'])
+@flask_praetorian.auth_required
+def get_test_items():
+    if request.args.get("test_id") is None:
+        return get_default_response({"message": "Parameter required: test_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(testitems).filter_by(testid=request.args.get("test_id"))
+    arr = []
+    for instance in query:
+        arr.append({"test_item_id": instance.testitemid,
+                    "test_id": instance.testid,
+                    "name": str(instance.name),
+                    "status": str(instance.status)})
+
+    return get_default_response({"data": arr})
