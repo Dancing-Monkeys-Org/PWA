@@ -493,26 +493,28 @@ definitions:
               type: "string"
               example: "COMPLETE"
     pickupList:
-        type: "object"
-        properties:
-          pickup_id:
-            type: "string"
-            example: "UUID of pickup"
-            drug_quantity:
-              type: "integer"
-              example: 3
-          scheduled_date:
-              type: "date"
-              example: "2021-01-26"
-          review_date:
-              type: "date"
-              example: "2021-01-26"
-          authorisation_status:
+        type: array
+        items:
+          type: "object"
+          properties:
+            pickup_id:
               type: "string"
-              example: "authorised"
-          pickup_status:
-              type: "string"
-              example: "AWAITING_PICKUP"
+              example: "UUID of pickup"
+              drug_quantity:
+                type: "integer"
+                example: 3
+            scheduled_date:
+                type: "date"
+                example: "2021-01-26"
+            review_date:
+                type: "date"
+                example: "2021-01-26"
+            authorisation_status:
+                type: "string"
+                example: "authorised"
+            pickup_status:
+                type: "string"
+                example: "AWAITING_PICKUP"
     testItemList:
         type: array
         items:
