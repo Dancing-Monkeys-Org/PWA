@@ -8,7 +8,8 @@ import theme from './theme';
 import routes from './routes';
 
 const App = () => {
-  const routing = useRoutes(routes);
+  const isLoggedIn = false;
+  const routing = useRoutes(routes(isLoggedIn));
 
   return (
     <ThemeProvider theme={theme}>

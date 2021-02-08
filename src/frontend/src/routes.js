@@ -11,10 +11,10 @@ import ProductListView from './views/product/ProductListView';
 import RegisterView from './views/auth/RegisterView';
 import SettingsView from './views/settings/SettingsView';
 
-const routes = [
+const routes = (isLoggedIn) => [
   {
     path: 'app',
-    element: <DashboardLayout />,
+    element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" />,
     children: [
       { path: 'account', element: <AccountView /> },
       { path: 'customers', element: <CustomerListView /> },
@@ -26,7 +26,7 @@ const routes = [
   },
   {
     path: '/',
-    element: <MainLayout />,
+    element: isLoggedIn ? <MainLayout /> : <Navigate to="/login" />,
     children: [
       { path: 'login', element: <LoginView /> },
       { path: 'register', element: <RegisterView /> },
