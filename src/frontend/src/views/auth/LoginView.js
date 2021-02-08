@@ -74,19 +74,7 @@ const LoginView = () => {
                     gutterBottom
                     variant="body2"
                   >
-                    Sign in on the internal platform
-                  </Typography>
-                </Box>
-                <Box
-                  mt={3}
-                  mb={1}
-                >
-                  <Typography
-                    align="center"
-                    color="textSecondary"
-                    variant="body1"
-                  >
-                    or login with email address
+                    Login to the Dancing Monkey Pharmacy Web App
                   </Typography>
                 </Box>
                 <TextField
