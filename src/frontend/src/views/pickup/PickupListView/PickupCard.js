@@ -12,7 +12,6 @@ import {
   makeStyles
 } from '@material-ui/core';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
-import GetAppIcon from '@material-ui/icons/GetApp';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const ProductCard = ({ className, product, ...rest }) => {
+const PickupCard = ({ className, pickup, ...rest }) => {
   const classes = useStyles();
 
   return (
@@ -44,7 +43,7 @@ const ProductCard = ({ className, product, ...rest }) => {
         >
           <Avatar
             alt="Product"
-            src={product.media}
+            src={pickup.media}
             variant="square"
           />
         </Box>
@@ -54,14 +53,23 @@ const ProductCard = ({ className, product, ...rest }) => {
           gutterBottom
           variant="h4"
         >
-          {product.title}
+          {pickup.drug_quantity} 
+          {/* {pickup.drug.drug_name} */}
+        </Typography>
+        <Typography
+          align="center"
+          color="textPrimary"
+          gutterBottom
+          variant="h4"
+        >
+          {/* Patient: {pickup.patient.patient_name} */}
         </Typography>
         <Typography
           align="center"
           color="textPrimary"
           variant="body1"
         >
-          {product.description}
+          Status: {pickup.pickup_status}
         </Typography>
       </CardContent>
       <Box flexGrow={1} />
@@ -85,25 +93,7 @@ const ProductCard = ({ className, product, ...rest }) => {
               display="inline"
               variant="body2"
             >
-              Updated 2hr ago
-            </Typography>
-          </Grid>
-          <Grid
-            className={classes.statsItem}
-            item
-          >
-            <GetAppIcon
-              className={classes.statsIcon}
-              color="action"
-            />
-            <Typography
-              color="textSecondary"
-              display="inline"
-              variant="body2"
-            >
-              {product.totalDownloads}
-              {' '}
-              Downloads
+              Scheduled {pickup.scheduled_date} | Review Date {pickup.review_date}
             </Typography>
           </Grid>
         </Grid>
@@ -112,9 +102,9 @@ const ProductCard = ({ className, product, ...rest }) => {
   );
 };
 
-ProductCard.propTypes = {
+PickupCard.propTypes = {
   className: PropTypes.string,
-  product: PropTypes.object.isRequired
+  pickup: PropTypes.object.isRequired
 };
 
-export default ProductCard;
+export default PickupCard;
