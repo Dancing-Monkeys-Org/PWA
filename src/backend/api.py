@@ -288,6 +288,9 @@ def get_pickups():
     with app.app_context():
         for instance in db.session.query(medicalpickups):
             arr.append({"pickup_id": instance.pickupid,
+                        "test_id": instance.testid,
+                        "patient_id": instance.patientid,
+                        "drug_id": instance.drugid,
                         "drug_quantity": instance.drugquantity,
                         "scheduled_date": str(instance.scheduleddate),
                         "review_date": str(instance.reviewdate),
