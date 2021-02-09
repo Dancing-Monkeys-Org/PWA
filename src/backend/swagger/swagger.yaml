@@ -498,22 +498,31 @@ definitions:
         items:
           type: "object"
           properties:
-            pickup_id:
-              type: "string"
-              example: "UUID of pickup"
+              pickup_id:
+                type: "string"
+                example: "UUID of pickup"
+              test_id:
+                type: "string"
+                example: "UUID of test"
+              patient_id:
+                type: "string"
+                example: "UUID of patient"
+              drug_id:
+                type: "string"
+                example: "UUID of patient"
               drug_quantity:
                 type: "integer"
                 example: 3
-            scheduled_date:
+              scheduled_date:
                 type: "date"
                 example: "2021-01-26"
-            review_date:
+              review_date:
                 type: "date"
                 example: "2021-01-26"
-            authorisation_status:
+              authorisation_status:
                 type: "string"
                 example: "authorised"
-            pickup_status:
+              pickup_status:
                 type: "string"
                 example: "AWAITING_PICKUP"
     testItemList:
