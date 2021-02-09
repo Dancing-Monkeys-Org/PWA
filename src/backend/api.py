@@ -5,7 +5,7 @@ from flask import request
 import flask
 import flask_sqlalchemy
 import flask_praetorian
-import flask_cors
+# import flask_cors
 import json
 import os
 import uuid
@@ -14,7 +14,7 @@ statuses = ["unauthorised", "authorised"]
 
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
-cors = flask_cors.CORS()
+# cors = flask_cors.CORS()
 
 
 class Users(db.Model):
