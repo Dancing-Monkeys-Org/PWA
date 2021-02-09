@@ -211,7 +211,7 @@ def init():
     db.init_app(app)
 
     # Initializes CORS so that the api_tool can talk to the example app
-    cors.init_app(app)
+    # cors.init_app(app)
 
     # Add users for the example
     with app.app_context():
@@ -346,7 +346,14 @@ def get_pickup():
 @app.route('/api/drug', methods=['GET'])
 @flask_praetorian.auth_required
 def get_drug():
-    instance = db.session.query(drugs).filter_by(drugid=request.args.get("drug_id")).first()
+    if request.args.get("drug_id") is None:
+         return get_default_response({"message": "Parameter required: drug_id",
+                                     "status_code": 400}), 400
+    query = db.session.query(drugs).filter_by(drugid=request.args.get("drug_id"))
+    if query.count() < 1:
+        return get_default_response({"message": "No drug with that ID could be found",
+                                     "status_code": 404}), 404
+    instance = query.first()
     return_value = {"drug_id": instance.drugid,
                     "name": instance.name}
     return get_default_response(return_value)
