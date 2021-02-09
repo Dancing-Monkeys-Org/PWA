@@ -8,8 +8,7 @@ import {
 import { Pagination } from '@material-ui/lab';
 import Page from 'components/Page';
 import Toolbar from './Toolbar';
-import ProductCard from './ProductCard';
-import data from './data';
+import PickupCard from './PickupCard';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,14 +22,27 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const ProductList = () => {
+const PickupListView = () => {
   const classes = useStyles();
-  const [products] = useState(data);
+  const [pickups, updatePickups] = useState([]);
+
+  React.useEffect(function effectFunction() {
+    fetch('https://dancingmonkeys.tech/api/pickups', { 
+          headers:  {
+            'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTI4MDAzMjMsImV4cCI6MTYxMjg4NjcyMywianRpIjoiMGVlZGU2N2YtMzI3Ny00MzE5LTg3YjAtMTBiZmZkYzA0NjRmIiwiaWQiOiJjZWUyOGRmZC1iZjZjLTQxMzQtODA4ZC04ZTI4ZTcwY2FmZjUiLCJybHMiOiIiLCJyZl9leHAiOjE2MTUzOTIzMjN9.UnsCDNkkgu6gM7n6gNNoTZg9qbtbyDur-zF5vvIpYaE',
+            'Accept': '*/*'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          updatePickups(data);
+        });
+  }, []);
 
   return (
     <Page
       className={classes.root}
-      title="Products"
+      title="Pick Ups"
     >
       <Container maxWidth={false}>
         <Toolbar />
@@ -39,17 +51,17 @@ const ProductList = () => {
             container
             spacing={3}
           >
-            {products.map((product) => (
+            {pickups.map((pickup) => (
               <Grid
                 item
-                key={product.id}
+                key={pickup.pickup_id}
                 lg={4}
                 md={6}
                 xs={12}
               >
-                <ProductCard
-                  className={classes.productCard}
-                  product={product}
+                <PickupCard
+                  className={classes.pickupCard}
+                  pickup={pickup}
                 />
               </Grid>
             ))}
@@ -71,4 +83,4 @@ const ProductList = () => {
   );
 };
 
-export default ProductList;
+export default PickupListView;
