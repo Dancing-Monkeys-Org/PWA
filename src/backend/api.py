@@ -66,6 +66,22 @@ class medicalpickups(db.Model):
     def identity(self):
         return self.pickupId
 
+class drugs(db.Model):
+    drugid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(255))
+
+    @classmethod
+    def lookup(cls, drugid):
+        return cls.query.filter_by(drugid=drugid).one_or_none()
+
+    @classmethod
+    def identify(cls, drugid):
+        return cls.query.get(drugid)
+
+    @property
+    def identity(self):
+        return self.drugid
+
 
 class contactdetails(db.Model):
     contactdetailid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
@@ -324,6 +340,15 @@ def get_pickup():
     return get_default_response(return_value)
 
 
+@app.route('/api/drug', methods=['GET'])
+@flask_praetorian.auth_required
+def get_drug():
+    instance = db.session.query(drugs).filter_by(drugid=request.args.get("drug_id")).first()
+    return_value = {"drug_id": instance.drugid,
+                    "name": instance.name}
+    return get_default_response(return_value)
+
+
 @app.route('/api/test', methods=['GET'])
 @flask_praetorian.auth_required
 def get_test():
@@ -476,3 +501,4 @@ def get_test_items():
                     "status": str(instance.status)})
 
     return get_default_response(arr)
+
