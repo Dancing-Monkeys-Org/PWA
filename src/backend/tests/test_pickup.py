@@ -4,6 +4,7 @@ from . import auth
 def test_not_authorised(client):
     res = client.get("/api/pickup")
     assert res.status_code == 401
+    assert "pickup_status" not in str(res.json)
 
 
 def test_pickup_no_pickup_id(client, db):
@@ -23,32 +24,7 @@ def test_no_pickups_to_return(client, db):
                      query_string={"pickup_id": "test-id"})
 
     assert res.status_code == 404
-
-    # Records to accommodate for foreign key constraints
-    db.session.execute(
-        'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
-        ' "addressline31", "addressline41", "ABC DEF")')
-
-    db.session.execute('INSERT INTO gps () VALUES ("gpsUUID", "Gp1", "contactDetailUUID")')
-    db.session.execute(
-        'INSERT INTO sensitivities() VALUES ("sensitivityUUID", "Water allergy", "What it says on the tin")')
-
-    db.session.execute(
-        'INSERT INTO patients() VALUES ("patientUUID", "gpsUUID", "sensitivityUUID", "Ben", "Jackson", "F",'
-        ' 12, "contactDetailUUID")')
-    db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
-    db.session.execute('INSERT INTO tests () VALUES ("testUUID", "drugUUID", "INCOMPLETE")')
-    # Record that should not be returned
-    db.session.execute(
-        'INSERT INTO medicalpickups () VALUES ("medicalPickupUUID",'
-        ' "testUUID", "patientUUID", "drugUUID", 1, "2021-02-01", "2021-02-01", 1, "AWAITING_PICKUP")')
-
-    res = client.get("/api/pickup", headers={'Authorization': "Bearer " + token},
-                     query_string={"pickup_id": "test-id"})
-
     assert "pickup_status" not in str(res.json)
-
-    assert res.status_code == 404
 
 
 def test_pickup_id_not_found(client, db):
@@ -80,7 +56,7 @@ def test_pickup_id_not_found(client, db):
     assert res.status_code == 404
 
 
-def test_pickup_pickup(client, db):
+def test_pickup(client, db):
     # Records to accommodate for foreign key constraints
     db.session.execute(
         'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
