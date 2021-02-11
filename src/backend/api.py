@@ -187,6 +187,7 @@ class requiredtests(db.Model):
     drugid = db.Column(db.String(36))
     standardtestid = db.Column(db.String(255))
     pharmacistdiscretion = db.Column(db.String(255))
+    testfrequency = db.Column(db.Integer())
 
     @classmethod
     def lookup(cls, requiredtestid):
@@ -509,6 +510,7 @@ def is_authorised(pickup_id):
                              "drug_id": requirement.drugid,
                              "test_id": requirement.standardtestid,
                              "pharmacistdescretion": requirement.pharmacistdiscretion,
+                             "interval": requirement.testfrequency,
                              "requirement_met": "No"})
 
     authorised = True
