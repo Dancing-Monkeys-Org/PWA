@@ -11,30 +11,37 @@ import ProductListView from './views/product/ProductListView';
 import RegisterView from './views/auth/RegisterView';
 import SettingsView from './views/settings/SettingsView';
 
-const routes = (isLoggedIn) => [
-  {
-    path: 'app',
-    element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" />,
-    children: [
-      { path: 'account', element: <AccountView /> },
-      { path: 'customers', element: <CustomerListView /> },
-      { path: 'dashboard', element: <DashboardView /> },
-      { path: 'products', element: <ProductListView /> },
-      { path: 'settings', element: <SettingsView /> },
-      { path: '*', element: <Navigate to="/404" /> }
-    ]
-  },
-  {
-    path: '/',
-    element: isLoggedIn ? <MainLayout /> : <Navigate to="/login" />,
-    children: [
-      { path: 'login', element: <LoginView /> },
-      { path: 'register', element: <RegisterView /> },
-      { path: '404', element: <NotFoundView /> },
-      { path: '/', element: <Navigate to="/app/dashboard" /> },
-      { path: '*', element: <Navigate to="/404" /> }
-    ]
+const routes = () => {
+  const loginVal = JSON.parse(localStorage.getItem("login"));
+  let isLoggedIn = false;
+  if (loginVal !== null) {
+    isLoggedIn = loginVal.login ?? false;
   }
-];
+  return [
+    {
+      path: 'app',
+      element: isLoggedIn ? <DashboardLayout /> : <LoginView />,
+      children: [
+        { path: 'account', element: <AccountView /> },
+        { path: 'customers', element: <CustomerListView /> },
+        { path: 'dashboard', element: <DashboardView /> },
+        { path: 'products', element: <ProductListView /> },
+        { path: 'settings', element: <SettingsView /> },
+        { path: '*', element: <Navigate to="/404" /> }
+      ]
+    },
+    {
+      path: '/',
+      element: isLoggedIn ? <MainLayout /> : <LoginView />,
+      children: [
+        { path: 'login', element: <LoginView /> },
+        { path: 'register', element: <RegisterView /> },
+        { path: '404', element: <NotFoundView /> },
+        { path: '/', element: <Navigate to="/app/dashboard" /> },
+        { path: '*', element: <Navigate to="/404" /> }
+      ]
+    }
+  ];
+}
 
 export default routes;

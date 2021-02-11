@@ -15,6 +15,7 @@ import {
 import FacebookIcon from '../../icons/Facebook';
 import GoogleIcon from '../../icons/Google';
 import Page from 'components/Page';
+import isAuthenticated from '../../utils/isAuthenticated';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,8 +44,10 @@ const LoginView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
-              email: 'demo@devias.io',
-              password: 'Password123'
+              // email: 'demo@devias.io',
+              // password: 'Password123'
+              email: 'demo1@devias.io',
+              password: 'Password1234'              
             }}
             validationSchema={Yup.object().shape({
               email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
@@ -158,6 +161,7 @@ const LoginView = () => {
                     color="primary"
                     disabled={isSubmitting}
                     fullWidth
+                    onClick={isAuthenticated(values.email, values.password)}
                     size="large"
                     type="submit"
                     variant="contained"
