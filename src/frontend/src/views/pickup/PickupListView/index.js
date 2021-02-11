@@ -25,18 +25,17 @@ const useStyles = makeStyles((theme) => ({
 const PickupListView = () => {
   const classes = useStyles();
   const [pickups, updatePickups] = useState([]);
-
-  React.useEffect(function effectFunction() {
-    fetch('https://dancingmonkeys.tech/api/pickups', { 
-          headers:  {
-            'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTI4MDAzMjMsImV4cCI6MTYxMjg4NjcyMywianRpIjoiMGVlZGU2N2YtMzI3Ny00MzE5LTg3YjAtMTBiZmZkYzA0NjRmIiwiaWQiOiJjZWUyOGRmZC1iZjZjLTQxMzQtODA4ZC04ZTI4ZTcwY2FmZjUiLCJybHMiOiIiLCJyZl9leHAiOjE2MTUzOTIzMjN9.UnsCDNkkgu6gM7n6gNNoTZg9qbtbyDur-zF5vvIpYaE',
-            'Accept': '*/*'
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          updatePickups(data);
-        });
+  React.useEffect(function effectFunction() { 
+    fetch('https://dancingmonkeys.tech/api/pickups', {
+      headers:  {
+        'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTMwNTg4NDksImV4cCI6MTYxMzE0NTI0OSwianRpIjoiZWZjYWY4ZmEtMWQ4My00ZTIzLWIwNmUtNGFmN2NkY2RlM2IxIiwiaWQiOiIzYzc2YmJlNy0xNTJkLTQ5N2UtYWY4Yi02ZTkzNTMyYmJlZWEiLCJybHMiOiIiLCJyZl9leHAiOjE2MTU2NTA4NDl9.j7h828qB4g0X7k_XI5lrKcaQ-jfeeTslN7ycAn-eEao',
+        'Accept': '*/*'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      updatePickups(data);
+    });
   }, []);
 
   return (
