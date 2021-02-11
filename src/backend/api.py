@@ -506,11 +506,19 @@ def is_authorised(pickup_id):
 
     for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
         requirements.append({"requirement_id": requirement.requiredtestid,
-                    "drug_id": requirement.drugid,
-                    "test_id": requirement.standardtestid,
-                    "pharmacistdescretion": requirement.pharmacistdiscretion})
+                             "drug_id": requirement.drugid,
+                             "test_id": requirement.standardtestid,
+                             "pharmacistdescretion": requirement.pharmacistdiscretion,
+                             "requirement_met": "No"})
 
-    return get_default_response(requirements)
+    authorised = True
+
+    for requirement in requirements:
+        if requirement["requirement_met"] == "No":
+            authorised = False
+            break
+
+    return get_default_response({"is_authorised": authorised, "requirements": requirements})
 
 
 @app.route('/api/pickup/authorised', methods=['GET'])
