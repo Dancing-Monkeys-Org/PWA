@@ -187,7 +187,7 @@ class sensitivities(db.Model):
 class requiredtests(db.Model):
     requiredtestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     drugid = db.Column(db.String(36))
-    standardtestid = db.Column(db.String(255))
+    standardtestid = db.Column(db.String(36))
     pharmacistdiscretion = db.Column(db.String(255))
     testfrequency = db.Column(db.Integer())
 
@@ -202,6 +202,26 @@ class requiredtests(db.Model):
     @property
     def identity(self):
         return self.requiredtestid
+
+
+class patienthistory(db.Model):
+    patienthistoryid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    patientid = db.Column(db.String(36))
+    standardtestid = db.Column(db.String(36))
+    dateconducted = db.Column(db.Date())
+    ispassed = db.Column(db.Boolean())
+
+    @classmethod
+    def lookup(cls, patienthistoryid):
+        return cls.query.filter_by(pickupId=patienthistoryid).one_or_none()
+
+    @classmethod
+    def identify(cls, patienthistoryid):
+        return cls.query.get(patienthistoryid)
+
+    @property
+    def identity(self):
+        return self.patienthistoryid
 
 
 def init():
@@ -507,21 +527,38 @@ def is_authorised(pickup_id):
 
     requirements = []
 
+    authorised = True
+
     for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
+        requirement_met = "No"
         minimum_last_test_date = datetime.datetime.now() - datetime.timedelta(days=requirement.testfrequency)
+
+        # print(patient_id)
+        print(requirement.standardtestid)
+
+        query2 = db.session.query(patienthistory).filter(patienthistory.patientid == patient_id,
+                                                         patienthistory.standardtestid == requirement.standardtestid,
+                                                         patienthistory.dateconducted > minimum_last_test_date)
+
+        if query2.count() > 1:
+            # if query.last().dateconducted < minimum_last_test_date:
+            requirement_met = "Yes"
+
         requirements.append({"requirement_id": requirement.requiredtestid,
                              "drug_id": requirement.drugid,
                              "test_id": requirement.standardtestid,
                              "pharmacistdescretion": requirement.pharmacistdiscretion,
                              "minimum_last_test_date": str(minimum_last_test_date),
-                             "requirement_met": "No"})
+                             "requirement_met": requirement_met})
 
-    authorised = True
 
-    for requirement in requirements:
-        if requirement["requirement_met"] == "No":
-            authorised = False
-            break
+
+    # for requirement in requirements:
+    #
+    #
+    #     if requirement["requirement_met"] == "No":
+    #         authorised = False
+
 
     return get_default_response({"is_authorised": authorised, "requirements": requirements})
 
