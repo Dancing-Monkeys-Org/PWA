@@ -45,7 +45,6 @@ class Users(db.Model):
 
 class medicalpickups(db.Model):
     pickupid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    testid = db.Column(db.String(36))
     patientid = db.Column(db.String(36))
     drugid = db.Column(db.String(36))
     drugquantity = db.Column(db.Integer())
@@ -65,6 +64,7 @@ class medicalpickups(db.Model):
     @property
     def identity(self):
         return self.pickupId
+
 
 class drugs(db.Model):
     drugid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
@@ -106,22 +106,21 @@ class contactdetails(db.Model):
         return self.contactdetailid
 
 
-class tests(db.Model):
-    testid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    drugid = db.Column(db.String(36))
-    status = db.Column(db.String(25))
+class standardtests(db.Model):
+    standardtestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    testname = db.Column(db.String(255))
 
     @classmethod
-    def lookup(cls, testid):
-        return cls.query.filter_by(pickupId=testid).one_or_none()
+    def lookup(cls, testname):
+        return cls.query.filter_by(pickupId=testname).one_or_none()
 
     @classmethod
-    def identify(cls, testid):
-        return cls.query.get(testid)
+    def identify(cls, testname):
+        return cls.query.get(testname)
 
     @property
     def identity(self):
-        return self.testid
+        return self.testname
 
 
 class patients(db.Model):
@@ -304,7 +303,6 @@ def get_pickups():
     with app.app_context():
         for instance in db.session.query(medicalpickups):
             arr.append({"pickup_id": instance.pickupid,
-                        "test_id": instance.testid,
                         "patient_id": instance.patientid,
                         "drug_id": instance.drugid,
                         "drug_quantity": instance.drugquantity,
@@ -331,7 +329,6 @@ def get_pickup():
     instance = query.first()
 
     return_value = {"pickup_id": instance.pickupid,
-                    "test_id": instance.testid,
                     "patient_id": instance.patientid,
                     "drug_id": instance.drugid,
                     "drug_quantity": instance.drugquantity,
@@ -366,7 +363,7 @@ def get_test():
         return get_default_response({"message": "Parameter required: test_id",
                                      "status_code": 400}), 400
 
-    query = db.session.query(tests).filter_by(testid=request.args.get("test_id"))
+    query = db.session.query(standardtests).filter_by(standardtestid=request.args.get("test_id"))
 
     if query.count() < 1:
         return get_default_response({"message": "No test with that ID could be found",
@@ -375,9 +372,8 @@ def get_test():
     instance = query.first()
 
     return_value = {
-                    "test_id": instance.testid,
-                    "drug_id": instance.drugid,
-                    "status": instance.status,
+                    "test_id": instance.standardtestid,
+                    "name": instance.testname,
     }
 
     return get_default_response(return_value)
@@ -487,28 +483,3 @@ def get_sensitivity():
     }
 
     return get_default_response(return_value)
-
-
-@app.route('/api/test/items', methods=['GET'])
-@flask_praetorian.auth_required
-def get_test_items():
-    if request.args.get("test_id") is None:
-        return get_default_response({"message": "Parameter required: test_id",
-                                     "status_code": 400}), 400
-
-    query = db.session.query(testitems).filter_by(testid=request.args.get("test_id"))
-
-    if db.session.query(tests).filter_by(testid=request.args.get("test_id")).count() < 1:
-        return get_default_response({"message": "No test with provided test ID exists",
-                                     "status_code": 404}), 404
-
-    arr = []
-
-    for instance in query:
-        arr.append({"test_item_id": instance.testitemid,
-                    "test_id": instance.testid,
-                    "name": str(instance.name),
-                    "status": str(instance.status)})
-
-    return get_default_response(arr)
-
