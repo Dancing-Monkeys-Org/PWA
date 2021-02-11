@@ -9,6 +9,8 @@ import flask_praetorian
 import json
 import os
 import uuid
+import datetime
+
 
 statuses = ["unauthorised", "authorised"]
 
@@ -506,11 +508,12 @@ def is_authorised(pickup_id):
     requirements = []
 
     for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
+        minimum_last_test_date = datetime.datetime.now() - datetime.timedelta(days=requirement.testfrequency)
         requirements.append({"requirement_id": requirement.requiredtestid,
                              "drug_id": requirement.drugid,
                              "test_id": requirement.standardtestid,
                              "pharmacistdescretion": requirement.pharmacistdiscretion,
-                             "interval": requirement.testfrequency,
+                             "minimum_last_test_date": str(minimum_last_test_date),
                              "requirement_met": "No"})
 
     authorised = True
