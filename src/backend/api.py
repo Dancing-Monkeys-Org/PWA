@@ -182,23 +182,23 @@ class sensitivities(db.Model):
         return self.sensitivityid
 
 
-class testitems(db.Model):
-    testitemid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    testid = db.Column(db.String(36))
-    name = db.Column(db.String(255))
-    status = db.Column(db.String(25))
+class requiredtests(db.Model):
+    requiredtestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    drugid = db.Column(db.String(36))
+    standardtestid = db.Column(db.String(255))
+    pharmacistdiscretion = db.Column(db.String(255))
 
     @classmethod
-    def lookup(cls, testitemid):
-        return cls.query.filter_by(pickupId=testitemid).one_or_none()
+    def lookup(cls, requiredtestid):
+        return cls.query.filter_by(pickupId=requiredtestid).one_or_none()
 
     @classmethod
-    def identify(cls, testitemid):
-        return cls.query.get(testitemid)
+    def identify(cls, requiredtestid):
+        return cls.query.get(requiredtestid)
 
     @property
     def identity(self):
-        return self.testitemid
+        return self.requiredtestid
 
 
 def init():
@@ -483,3 +483,37 @@ def get_sensitivity():
     }
 
     return get_default_response(return_value)
+
+
+def is_authorised(pickup_id):
+    if pickup_id is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+
+    pickup = query.first()
+
+    drug_id = pickup.drugid
+
+    patient_id = pickup.patientid
+
+    requirements = []
+
+    for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
+        requirements.append({"requirement_id": requirement.requiredtestid,
+                    "drug_id": requirement.drugid,
+                    "test_id": requirement.standardtestid,
+                    "pharmacistdescretion": requirement.pharmacistdiscretion})
+
+    return get_default_response(requirements)
+
+
+@app.route('/api/pickup/authorised', methods=['GET'])
+@flask_praetorian.auth_required
+def get_pickup_authorised():
+    return is_authorised(request.args.get("pickup_id"))
