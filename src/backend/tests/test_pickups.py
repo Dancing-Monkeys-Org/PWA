@@ -13,8 +13,8 @@ def test_return_one(db, client):
     db.session.execute('INSERT INTO sensitivities() VALUES ("sensitivityUUID", "Water allergy", "What it says on the tin")')
     db.session.execute('INSERT INTO patients() VALUES ("patientUUID", "gpsUUID", "sensitivityUUID", "Ben", "Jackson", "F", 12, "contactDetailUUID")')
     db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
-    db.session.execute('INSERT INTO tests () VALUES ("testUUID", "drugUUID", "INCOMPLETE")')
-    db.session.execute('INSERT INTO medicalpickups () VALUES ("medicalPickupUUID", "testUUID", "patientUUID", "drugUUID", 1, 2021-02-01, 2021-02-01, 1, "AWAITING_PICKUP")')
+    db.session.execute('INSERT INTO standardtests () VALUES ("testUUID", "Blood test 1")')
+    db.session.execute('INSERT INTO medicalpickups () VALUES ("medicalPickupUUID", "patientUUID", "drugUUID", 1, 2021-02-01, 2021-02-01, 1, "AWAITING_PICKUP")')
     res = client.get("/api/pickups", headers={'Authorization': "Bearer " + token})
     assert res.json[0]["pickup_id"] == 'medicalPickupUUID'
     assert res.status_code == 200
@@ -31,10 +31,10 @@ def test_return_multiple(db, client):
     db.session.execute('INSERT INTO patients() VALUES ("patientUUID2", "gpsUUID2", "sensitivityUUID2", "Ben", "Jackson", "F", 12, "contactDetailUUID2")')
     db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
     db.session.execute('INSERT INTO drugs () VALUES ("drugUUID2", "Drug 1")')
-    db.session.execute('INSERT INTO tests () VALUES ("testUUID", "drugUUID", "INCOMPLETE")')
-    db.session.execute('INSERT INTO tests () VALUES ("testUUID2", "drugUUID2", "INCOMPLETE")')
-    db.session.execute('INSERT INTO medicalpickups () VALUES ("medicalPickupUUID", "testUUID", "patientUUID", "drugUUID", 1, 2021-02-01, 2021-02-01, 1, "AWAITING_PICKUP")')
-    db.session.execute('INSERT INTO medicalpickups () VALUES ("medicalPickupUUID2", "testUUID2", "patientUUID2", "drugUUID2", 1, 2021-02-01, 2021-02-01, 1, "AWAITING_PICKUP")')
+    db.session.execute('INSERT INTO standardtests () VALUES ("testUUID", "Blood test 1")')
+    db.session.execute('INSERT INTO standardtests () VALUES ("testUUID2", "Blood test 2")')
+    db.session.execute('INSERT INTO medicalpickups () VALUES ("medicalPickupUUID", "patientUUID", "drugUUID", 1, 2021-02-01, 2021-02-01, 1, "AWAITING_PICKUP")')
+    db.session.execute('INSERT INTO medicalpickups () VALUES ("medicalPickupUUID2", "patientUUID2", "drugUUID2", 1, 2021-02-01, 2021-02-01, 1, "AWAITING_PICKUP")')
     res = client.get("/api/pickups", headers={'Authorization': "Bearer " + token})
     assert len(res.json) == 2
     assert res.json[0]["pickup_id"] == 'medicalPickupUUID'
