@@ -13,6 +13,7 @@ import {
   makeStyles
 } from '@material-ui/core';
 import Page from 'components/Page';
+import isAuthenticated from '../../utils/isAuthenticated';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,15 +42,15 @@ const LoginView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
-              email: 'admin',
+              username: 'admin',
               password: 'MasterMonkey'
             }}
             validationSchema={Yup.object().shape({
-              email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+              username: Yup.string().max(255).required('Username is required'),
               password: Yup.string().max(255).required('Password is required')
             })}
             onSubmit={() => {
-              navigate('/app/customers', { replace: true });
+              navigate('/app/pickups', { replace: true });
             }}
           >
             {({
@@ -78,16 +79,16 @@ const LoginView = () => {
                   </Typography>
                 </Box>
                 <TextField
-                  error={Boolean(touched.email && errors.email)}
+                  error={Boolean(touched.username && errors.username)}
                   fullWidth
-                  helperText={touched.email && errors.email}
-                  label="Email Address"
+                  helperText={touched.username && errors.username}
+                  label="Username"
                   margin="normal"
-                  name="email"
+                  name="username"
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  type="email"
-                  value={values.email}
+                  type="text"
+                  value={values.username}
                   variant="outlined"
                 />
                 <TextField
@@ -108,6 +109,7 @@ const LoginView = () => {
                     color="primary"
                     disabled={isSubmitting}
                     fullWidth
+                    onClick={isAuthenticated(values.username, values.password)}
                     size="large"
                     type="submit"
                     variant="contained"
