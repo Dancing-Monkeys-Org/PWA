@@ -242,7 +242,7 @@ def init():
             db.session.add(Users(
               username=DEFAULT_ACCOUNT_USERNAME,
               password=guard.hash_password(DEFAULT_ACCOUNT_PASSWORD),
-              role=DEFAULT_ACCOUNT_USERNAME
+              role=DEFAULT_ACCOUNT_ROLE
                 ))
         db.session.commit()
 
@@ -361,6 +361,32 @@ def get_pickup():
                     "pickup_status": instance.pickupstatus}
 
     return get_default_response(return_value)
+
+
+@app.route('/api/pickup/status', methods=['PATCH'])
+@flask_praetorian.auth_required
+def update_pickup_status():
+    print(flask_praetorian.current_user().role)
+    if flask_praetorian.current_user().role != "pharmacist":
+        return get_default_response({"message": "Pharmacist role required to update pickup status",
+                                     "status_code": 401}), 401
+
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    if "status" not in request.json:
+        return get_default_response({"message": "Field required in JSON body: status",
+                                     "status_code": 400}), 400
+
+    pickup_id = request.args.get("pickup_id")
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+    if query.count() < 1:
+        return get_default_response({"message": "No pickup with that ID could be found",
+                                     "status_code": 404}), 404
+
+
 
 
 @app.route('/api/drug', methods=['GET'])
