@@ -4,10 +4,13 @@ import PropTypes from 'prop-types';
 const Patient = ({ className, patient, ...rest }) => {
     const [drug, updateDrug] = useState([]);
 
+    const loginVal = JSON.parse(localStorage.getItem("login"));
+    const token = loginVal.token;
+
     React.useEffect(function effectFunction() {
         fetch('https://dancingmonkeys.tech/api/drug?drug_id=' + drug_id, { 
               headers:  {
-                'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTMxNDMyNDcsImV4cCI6MTYxMzIyOTY0NywianRpIjoiZDA0YzRhMmYtMTY3ZC00NzFjLWJlODYtOGJlY2FlZDA1OTBkIiwiaWQiOiIzYzc2YmJlNy0xNTJkLTQ5N2UtYWY4Yi02ZTkzNTMyYmJlZWEiLCJybHMiOiIiLCJyZl9leHAiOjE2MTU3MzUyNDd9.lqxCRYdxSVPEJfXfcb5mMoVm_f29VqsA9xHFyAfOWfY',
+                'Authorization': `Bearer ${token}`,
                 'Accept': '*/*'
               }
             })
