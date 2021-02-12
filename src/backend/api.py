@@ -520,9 +520,7 @@ def is_authorised(pickup_id):
                                      "status_code": 404}), 404
 
     pickup = query.first()
-
     drug_id = pickup.drugid
-
     patient_id = pickup.patientid
 
     requirements = []
@@ -530,7 +528,6 @@ def is_authorised(pickup_id):
     authorised = True
 
     for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
-        requirement_met = "No"
         minimum_last_test_date = datetime.datetime.now() - datetime.timedelta(days=requirement.testfrequency)
 
         query2 = db.session.query(patienthistory).filter(patienthistory.patientid == patient_id,
@@ -538,8 +535,11 @@ def is_authorised(pickup_id):
                                                          patienthistory.dateconducted > minimum_last_test_date)
 
         if query2.count() > 0:
-            # if query.last().dateconducted < minimum_last_test_date:
             requirement_met = "Yes"
+        else:
+            requirement_met = "No"
+            if requirement.pharmacistdiscretion == "non":
+                authorised = False
 
         requirements.append({"requirement_id": requirement.requiredtestid,
                              "drug_id": requirement.drugid,
@@ -547,15 +547,6 @@ def is_authorised(pickup_id):
                              "pharmacistdescretion": requirement.pharmacistdiscretion,
                              "minimum_last_test_date": str(minimum_last_test_date),
                              "requirement_met": requirement_met})
-
-
-
-    # for requirement in requirements:
-    #
-    #
-    #     if requirement["requirement_met"] == "No":
-    #         authorised = False
-
 
     return get_default_response({"is_authorised": authorised, "requirements": requirements})
 
