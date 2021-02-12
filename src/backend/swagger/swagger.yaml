@@ -500,6 +500,12 @@ definitions:
           description:
               type: "string"
               example: "Allergic to Penicillin"
+    pickup_status_update_success:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully updated pickup status"
     pickupList:
         type: array
         items:
