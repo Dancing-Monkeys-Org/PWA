@@ -520,15 +520,17 @@ def is_authorised(pickup_id):
                                      "status_code": 404}), 404
 
     pickup = query.first()
+
     drug_id = pickup.drugid
     patient_id = pickup.patientid
+    scheduled_date = pickup.scheduleddate
 
     requirements = []
 
     authorised = True
 
     for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
-        minimum_last_test_date = datetime.datetime.now() - datetime.timedelta(days=requirement.testfrequency)
+        minimum_last_test_date = scheduled_date - datetime.timedelta(days=requirement.testfrequency)
 
         query2 = db.session.query(patienthistory).filter(patienthistory.patientid == patient_id,
                                                          patienthistory.standardtestid == requirement.standardtestid,

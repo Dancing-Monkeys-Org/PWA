@@ -95,7 +95,7 @@ def test_requirements_not_met(client, db):
     assert not res.json['is_authorised']
 
 
-def test_requirements_met_due_to_discrestion(client, db):
+def test_requirements_met_due_to_discretion(client, db):
     foreign_key_entries(db)
 
     db.session.execute('INSERT INTO requiredtests () VALUES'
