@@ -50,7 +50,7 @@ const LoginView = () => {
               password: Yup.string().max(255).required('Password is required')
             })}
             onSubmit={() => {
-              navigate('/app/customers', { replace: true });
+              navigate('/app/pickups', { replace: true });
             }}
           >
             {({
