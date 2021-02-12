@@ -529,18 +529,21 @@ def is_authorised(pickup_id):
 
     authorised = True
 
+    # Loops through all test requirements
     for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
         minimum_last_test_date = scheduled_date - datetime.timedelta(days=requirement.testfrequency)
 
+        # Queries the database for tests in the patients medical history that would match the requirements for the drug
         query2 = db.session.query(patienthistory).filter(patienthistory.patientid == patient_id,
                                                          patienthistory.standardtestid == requirement.standardtestid,
                                                          patienthistory.dateconducted > minimum_last_test_date)
-
         if query2.count() > 0:
             requirement_met = "Yes"
         else:
             requirement_met = "No"
+            # If pharmacist has discretion to authorise pickup without test then requirements is considered to be met
             if requirement.pharmacistdiscretion == "non":
+                # If any of the requirements are not met then the pharmacist cannot authorise the pickup
                 authorised = False
 
         requirements.append({"requirement_id": requirement.requiredtestid,

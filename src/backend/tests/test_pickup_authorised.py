@@ -113,3 +113,23 @@ def test_requirements_met_due_to_discretion(client, db):
 
     assert res.status_code == 200
     assert res.json['is_authorised']
+
+
+def test_requirements_met(client, db):
+    foreign_key_entries(db)
+
+    db.session.execute('INSERT INTO requiredtests () VALUES'
+                       '("requiredtest3", "d99ac869-88c6-4467-a7ac-80d4e2895a91", "test1", "non", 60),'
+                       '("requiredtest4", "d99ac869-88c6-4467-a7ac-80d4e2895a91", "test2", "non", 90);')
+
+    db.session.execute("INSERT INTO patienthistory () VALUES"
+                       "('history3', '510b5ab9-3685-46ec-8082-3ef8ba848688',  'test1', '2020-12-31', 1),"
+                       "('history4', '510b5ab9-3685-46ec-8082-3ef8ba848688', 'test2', '2020-12-31', 1);")
+
+    token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
+
+    res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token},
+                     query_string={"pickup_id": "4c826247-df94-4f8f-8a55-faf98a4912bd"})
+
+    assert res.status_code == 200
+    assert res.json['is_authorised']
