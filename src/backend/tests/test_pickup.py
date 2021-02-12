@@ -4,6 +4,7 @@ from . import auth
 def test_not_authorised(client):
     res = client.get("/api/pickup")
     assert res.status_code == 401
+    assert "pickup_status" not in str(res.json)
 
 
 def test_pickup_no_pickup_id(client, db):
@@ -23,32 +24,7 @@ def test_no_pickups_to_return(client, db):
                      query_string={"pickup_id": "test-id"})
 
     assert res.status_code == 404
-
-    # Records to accommodate for foreign key constraints
-    db.session.execute(
-        'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
-        ' "addressline31", "addressline41", "ABC DEF")')
-
-    db.session.execute('INSERT INTO gps () VALUES ("gpsUUID", "Gp1", "contactDetailUUID")')
-    db.session.execute(
-        'INSERT INTO sensitivities() VALUES ("sensitivityUUID", "Water allergy", "What it says on the tin")')
-
-    db.session.execute(
-        'INSERT INTO patients() VALUES ("patientUUID", "gpsUUID", "sensitivityUUID", "Ben", "Jackson", "F",'
-        ' 12, "contactDetailUUID")')
-    db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
-    db.session.execute('INSERT INTO tests () VALUES ("testUUID", "drugUUID", "INCOMPLETE")')
-    # Record that should not be returned
-    db.session.execute(
-        'INSERT INTO medicalpickups () VALUES ("medicalPickupUUID",'
-        ' "testUUID", "patientUUID", "drugUUID", 1, "2021-02-01", "2021-02-01", 1, "AWAITING_PICKUP")')
-
-    res = client.get("/api/pickup", headers={'Authorization': "Bearer " + token},
-                     query_string={"pickup_id": "test-id"})
-
     assert "pickup_status" not in str(res.json)
-
-    assert res.status_code == 404
 
 
 def test_pickup_id_not_found(client, db):
@@ -65,11 +41,11 @@ def test_pickup_id_not_found(client, db):
         'INSERT INTO patients() VALUES ("patientUUID", "gpsUUID", "sensitivityUUID", "Ben", "Jackson", "F",'
         ' 12, "contactDetailUUID")')
     db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
-    db.session.execute('INSERT INTO tests () VALUES ("testUUID", "drugUUID", "INCOMPLETE")')
+    db.session.execute('INSERT INTO standardtests () VALUES ("testUUID", "INCOMPLETE")')
     # Record that should not be returned
     db.session.execute(
         'INSERT INTO medicalpickups () VALUES ("medicalPickupUUID",'
-        ' "testUUID", "patientUUID", "drugUUID", 1, "2021-02-01", "2021-02-01", 1, "AWAITING_PICKUP")')
+        ' "patientUUID", "drugUUID", 1, "2021-02-01", "2021-02-01", 1, "AWAITING_PICKUP")')
 
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
@@ -80,7 +56,7 @@ def test_pickup_id_not_found(client, db):
     assert res.status_code == 404
 
 
-def test_pickup_pickup(client, db):
+def test_pickup(client, db):
     # Records to accommodate for foreign key constraints
     db.session.execute(
         'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
@@ -94,15 +70,15 @@ def test_pickup_pickup(client, db):
         'INSERT INTO patients() VALUES ("patientUUID", "gpsUUID", "sensitivityUUID", "Ben", "Jackson", "F",'
         ' 12, "contactDetailUUID")')
     db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
-    db.session.execute('INSERT INTO tests () VALUES ("testUUID", "drugUUID", "INCOMPLETE")')
+    db.session.execute('INSERT INTO standardtests () VALUES ("testUUID", "Blood test 1")')
     # Record to be extracted
     db.session.execute(
         'INSERT INTO medicalpickups () VALUES ("medicalPickupUUID",'
-        ' "testUUID", "patientUUID", "drugUUID", 1, "2021-02-01", "2021-02-01", 1, "AWAITING_PICKUP")')
+        ' "patientUUID", "drugUUID", 1, "2021-02-01", "2021-02-01", 1, "AWAITING_PICKUP")')
     # Record that should not be returned
     db.session.execute(
         'INSERT INTO medicalpickups () VALUES ("medicalPickupUUID2",'
-        ' "testUUID", "patientUUID", "drugUUID", 1, "2021-03-01", "2021-03-01", 1, "AWAITING_PICKUP")')
+        ' "patientUUID", "drugUUID", 1, "2021-03-01", "2021-03-01", 1, "AWAITING_PICKUP")')
 
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
@@ -112,7 +88,6 @@ def test_pickup_pickup(client, db):
     assert res.status_code == 200
 
     assert res.json['pickup_id'] == "medicalPickupUUID"
-    assert res.json['test_id'] == "testUUID"
     assert res.json['patient_id'] == "patientUUID"
     assert res.json['drug_id'] == "drugUUID"
     assert res.json['drug_quantity'] == 1

@@ -5,7 +5,7 @@ from flask import request
 import flask
 import flask_sqlalchemy
 import flask_praetorian
-import flask_cors
+# import flask_cors
 import json
 import os
 import uuid
@@ -14,14 +14,14 @@ statuses = ["unauthorised", "authorised"]
 
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
-cors = flask_cors.CORS()
+# cors = flask_cors.CORS()
 
 
 class Users(db.Model):
     userId = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     username = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
-    role = db.Column(db.String(255))
+    role = db.Column(db.String(25))
 
     @property
     def rolenames(self):
@@ -45,7 +45,6 @@ class Users(db.Model):
 
 class medicalpickups(db.Model):
     pickupid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    testid = db.Column(db.String(36))
     patientid = db.Column(db.String(36))
     drugid = db.Column(db.String(36))
     drugquantity = db.Column(db.Integer())
@@ -67,6 +66,141 @@ class medicalpickups(db.Model):
         return self.pickupId
 
 
+class drugs(db.Model):
+    drugid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(255))
+
+    @classmethod
+    def lookup(cls, drugid):
+        return cls.query.filter_by(drugid=drugid).one_or_none()
+
+    @classmethod
+    def identify(cls, drugid):
+        return cls.query.get(drugid)
+
+    @property
+    def identity(self):
+        return self.drugid
+
+
+class contactdetails(db.Model):
+    contactdetailid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    phonenumber = db.Column(db.String(255))
+    emailaddress = db.Column(db.String(255))
+    addressline1 = db.Column(db.String(255))
+    addressline2 = db.Column(db.String(255))
+    addressline3 = db.Column(db.String(255))
+    addressline4 = db.Column(db.String(255))
+    postcode = db.Column(db.String(7))
+
+    @classmethod
+    def lookup(cls, contactdetailid):
+        return cls.query.filter_by(pickupId=contactdetailid).one_or_none()
+
+    @classmethod
+    def identify(cls, contactdetailid):
+        return cls.query.get(contactdetailid)
+
+    @property
+    def identity(self):
+        return self.contactdetailid
+
+
+class standardtests(db.Model):
+    standardtestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    testname = db.Column(db.String(255))
+
+    @classmethod
+    def lookup(cls, testname):
+        return cls.query.filter_by(pickupId=testname).one_or_none()
+
+    @classmethod
+    def identify(cls, testname):
+        return cls.query.get(testname)
+
+    @property
+    def identity(self):
+        return self.testname
+
+
+class patients(db.Model):
+    patientid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    gpid = db.Column(db.String(36))
+    sensitivityid = db.Column(db.String(36))
+    forename = db.Column(db.String(255))
+    surname = db.Column(db.String(255))
+    sex = db.Column(db.String(1))
+    age = db.Column(db.Integer())
+    contactdetailid = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, patientid):
+        return cls.query.filter_by(pickupId=patientid).one_or_none()
+
+    @classmethod
+    def identify(cls, patientid):
+        return cls.query.get(patientid)
+
+    @property
+    def identity(self):
+        return self.patientid
+
+
+class gps(db.Model):
+    gpid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(255))
+    contactdetailid = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, testid):
+        return cls.query.filter_by(pickupId=testid).one_or_none()
+
+    @classmethod
+    def identify(cls, testid):
+        return cls.query.get(testid)
+
+    @property
+    def identity(self):
+        return self.testid
+
+
+class sensitivities(db.Model):
+    sensitivityid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    name = db.Column(db.String(255))
+    description = db.Column(db.String(255))
+
+    @classmethod
+    def lookup(cls, sensitivityid):
+        return cls.query.filter_by(pickupId=sensitivityid).one_or_none()
+
+    @classmethod
+    def identify(cls, sensitivityid):
+        return cls.query.get(sensitivityid)
+
+    @property
+    def identity(self):
+        return self.sensitivityid
+
+
+class testitems(db.Model):
+    testitemid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    testid = db.Column(db.String(36))
+    name = db.Column(db.String(255))
+    status = db.Column(db.String(25))
+
+    @classmethod
+    def lookup(cls, testitemid):
+        return cls.query.filter_by(pickupId=testitemid).one_or_none()
+
+    @classmethod
+    def identify(cls, testitemid):
+        return cls.query.get(testitemid)
+
+    @property
+    def identity(self):
+        return self.testitemid
+
+
 def init():
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, Users)
@@ -76,7 +210,7 @@ def init():
     db.init_app(app)
 
     # Initializes CORS so that the api_tool can talk to the example app
-    cors.init_app(app)
+    # cors.init_app(app)
 
     # Add users for the example
     with app.app_context():
@@ -169,6 +303,8 @@ def get_pickups():
     with app.app_context():
         for instance in db.session.query(medicalpickups):
             arr.append({"pickup_id": instance.pickupid,
+                        "patient_id": instance.patientid,
+                        "drug_id": instance.drugid,
                         "drug_quantity": instance.drugquantity,
                         "scheduled_date": str(instance.scheduleddate),
                         "review_date": str(instance.reviewdate),
@@ -193,7 +329,6 @@ def get_pickup():
     instance = query.first()
 
     return_value = {"pickup_id": instance.pickupid,
-                    "test_id": instance.testid,
                     "patient_id": instance.patientid,
                     "drug_id": instance.drugid,
                     "drug_quantity": instance.drugquantity,
@@ -201,5 +336,150 @@ def get_pickup():
                     "review_date": str(instance.reviewdate),
                     "is_authorised": statuses[instance.isauthorised],
                     "pickup_status": instance.pickupstatus}
+
+    return get_default_response(return_value)
+
+
+@app.route('/api/drug', methods=['GET'])
+@flask_praetorian.auth_required
+def get_drug():
+    if request.args.get("drug_id") is None:
+         return get_default_response({"message": "Parameter required: drug_id",
+                                     "status_code": 400}), 400
+    query = db.session.query(drugs).filter_by(drugid=request.args.get("drug_id"))
+    if query.count() < 1:
+        return get_default_response({"message": "No drug with that ID could be found",
+                                     "status_code": 404}), 404
+    instance = query.first()
+    return_value = {"drug_id": instance.drugid,
+                    "name": instance.name}
+    return get_default_response(return_value)
+
+
+@app.route('/api/test', methods=['GET'])
+@flask_praetorian.auth_required
+def get_test():
+    if request.args.get("test_id") is None:
+        return get_default_response({"message": "Parameter required: test_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(standardtests).filter_by(standardtestid=request.args.get("test_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No test with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+                    "test_id": instance.standardtestid,
+                    "name": instance.testname,
+    }
+
+    return get_default_response(return_value)
+
+
+@app.route('/api/contact', methods=['GET'])
+@flask_praetorian.auth_required
+def get_contact():
+    if request.args.get("contact_id") is None:
+        return get_default_response({"message": "Parameter required: contact_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(contactdetails).filter_by(contactdetailid=request.args.get("contact_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No contact with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "contact_id": instance.contactdetailid,
+        "phone_number": instance.phonenumber,
+        "email_address": instance.emailaddress,
+        "address_line_1": instance.addressline1,
+        "address_line_2": instance.addressline2,
+        "address_line_3": instance.addressline3,
+        "address_line_4": instance.addressline4,
+        "postcode": instance.postcode,
+    }
+
+    return get_default_response(return_value)
+
+
+@app.route('/api/gp', methods=['GET'])
+@flask_praetorian.auth_required
+def get_gp():
+    if request.args.get("gp_id") is None:
+        return get_default_response({"message": "Parameter required: gp_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(gps).filter_by(gpid=request.args.get("gp_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No gp with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "gp_id": instance.gpid,
+        "name": instance.name,
+        "contact_id": instance.contactdetailid
+    }
+
+    return get_default_response(return_value)
+
+
+@app.route('/api/patient', methods=['GET'])
+@flask_praetorian.auth_required
+def get_patient():
+    if request.args.get("patient_id") is None:
+        return get_default_response({"message": "Parameter required: patient_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(patients).filter_by(patientid=request.args.get("patient_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No patient with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "patient_id": instance.patientid,
+        "gp_id": instance.gpid,
+        "sensitivity_id": instance.sensitivityid,
+        "forename": instance.forename,
+        "surname": instance.surname,
+        "sex": instance.sex,
+        "age": instance.age,
+        "contact_id": instance.contactdetailid,
+    }
+
+    return get_default_response(return_value)
+
+
+@app.route('/api/sensitivity', methods=['GET'])
+@flask_praetorian.auth_required
+def get_sensitivity():
+    if request.args.get("sensitivity_id") is None:
+        return get_default_response({"message": "Parameter required: sensitivity_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(sensitivities).filter_by(sensitivityid=request.args.get("sensitivity_id"))
+
+    if query.count() < 1:
+        return get_default_response({"message": "No sensitivity with that ID could be found",
+                                     "status_code": 404}), 404
+
+    instance = query.first()
+
+    return_value = {
+        "sensitivity_id": instance.sensitivityid,
+        "name": instance.name,
+        "description": instance.description
+    }
 
     return get_default_response(return_value)

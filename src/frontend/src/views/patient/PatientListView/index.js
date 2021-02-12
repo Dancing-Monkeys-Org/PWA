@@ -18,14 +18,14 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const CustomerListView = () => {
+const PatientListView = () => {
   const classes = useStyles();
   const [customers] = useState(data);
 
   return (
     <Page
       className={classes.root}
-      title="Customers"
+      title="Patients"
     >
       <Container maxWidth={false}>
         <Toolbar />
@@ -37,4 +37,4 @@ const CustomerListView = () => {
   );
 };
 
-export default CustomerListView;
+export default PatientListView;
