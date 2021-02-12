@@ -7,6 +7,7 @@ import LoginView from './views/auth/LoginView';
 import NotFoundView from './views/errors/NotFoundView';
 import PatientListView from './views/patient/PatientListView';
 import PickupListView from './views/pickup/PickupListView';
+import PickupView from './views/pickup/PickupView';
 
 const routes = [
   {
@@ -16,6 +17,7 @@ const routes = [
       { path: 'patients', element: <PatientListView /> },
       { path: 'dashboard', element: <DashboardView /> },
       { path: 'pickups', element: <PickupListView /> },
+      { path: 'pickup/:id', element: <PickupView />},
       { path: '*', element: <Navigate to="/404" /> }
     ]
   },
