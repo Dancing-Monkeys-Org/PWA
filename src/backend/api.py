@@ -544,7 +544,7 @@ def is_authorised(pickup_id):
         requirements.append({"requirement_id": requirement.requiredtestid,
                              "drug_id": requirement.drugid,
                              "test_id": requirement.standardtestid,
-                             "pharmacistdescretion": requirement.pharmacistdiscretion,
+                             "pharmacist_discretion": requirement.pharmacistdiscretion,
                              "minimum_last_test_date": str(minimum_last_test_date),
                              "requirement_met": requirement_met})
 
