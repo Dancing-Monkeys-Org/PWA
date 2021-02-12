@@ -11,6 +11,8 @@ import {
   Typography,
   makeStyles
 } from '@material-ui/core';
+import { Link } from 'react-router-dom'
+import DrugName from '../DrugName'
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 
 const useStyles = makeStyles((theme) => ({
@@ -31,47 +33,53 @@ const PickupCard = ({ className, pickup, ...rest }) => {
   const classes = useStyles();
 
   return (
+    <Link to={'/app/pickup/' + pickup.pickup_id}>
     <Card
       className={clsx(classes.root, className)}
       {...rest}
     >
       <CardContent>
-        <Box
-          display="flex"
-          justifyContent="center"
-          mb={3}
-        >
-          <Avatar
-            alt="Product"
-            src={pickup.media}
-            variant="square"
-          />
-        </Box>
-        <Typography
-          align="center"
+
+      <Typography
+          align="left"
           color="textPrimary"
           gutterBottom
           variant="h4"
         >
-          {pickup.drug_quantity} 
-          {/* {pickup.drug.drug_name} */}
+          <DrugName
+                className={classes.drugName}
+                drug_id={pickup.drug_id}
+          /> 
         </Typography>
+
         <Typography
-          align="center"
+          align="left"
+          color="textPrimary"
+          gutterBottom
+          variant="h4"
+        >
+          Quantity: {pickup.drug_quantity} 
+        </Typography>
+
+        <Typography
+          align="left"
           color="textPrimary"
           gutterBottom
           variant="h4"
         >
           {/* Patient: {pickup.patient.patient_name} */}
         </Typography>
+
         <Typography
-          align="center"
+          align="left"
           color="textPrimary"
-          variant="body1"
+          variant="h4"
         >
           Status: {pickup.pickup_status}
         </Typography>
+
       </CardContent>
+
       <Box flexGrow={1} />
       <Divider />
       <Box p={2}>
@@ -98,7 +106,9 @@ const PickupCard = ({ className, pickup, ...rest }) => {
           </Grid>
         </Grid>
       </Box>
+      
     </Card>
+    </Link>
   );
 };
 

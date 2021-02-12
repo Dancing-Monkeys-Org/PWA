@@ -25,17 +25,21 @@ const useStyles = makeStyles((theme) => ({
 const PickupListView = () => {
   const classes = useStyles();
   const [pickups, updatePickups] = useState([]);
-  React.useEffect(function effectFunction() { 
-    fetch('https://dancingmonkeys.tech/api/pickups', {
-      headers:  {
-        'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTMwNTg4NDksImV4cCI6MTYxMzE0NTI0OSwianRpIjoiZWZjYWY4ZmEtMWQ4My00ZTIzLWIwNmUtNGFmN2NkY2RlM2IxIiwiaWQiOiIzYzc2YmJlNy0xNTJkLTQ5N2UtYWY4Yi02ZTkzNTMyYmJlZWEiLCJybHMiOiIiLCJyZl9leHAiOjE2MTU2NTA4NDl9.j7h828qB4g0X7k_XI5lrKcaQ-jfeeTslN7ycAn-eEao',
-        'Accept': '*/*'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      updatePickups(data);
-    });
+
+  const loginVal = JSON.parse(localStorage.getItem("login"));
+  const token = loginVal.token;
+
+  React.useEffect(function effectFunction() {
+    fetch('https://dancingmonkeys.tech/api/pickups', { 
+          headers:  {
+            'Authorization': `Bearer ${token}`,
+            'Accept': '*/*'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          updatePickups(data);
+        });
   }, []);
 
   return (
