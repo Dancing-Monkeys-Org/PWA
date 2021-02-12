@@ -4,9 +4,11 @@ import {
   Box,
   Container,
   Grid,
-  makeStyles
+  makeStyles,
+  Typography
 } from '@material-ui/core';
 import Page from 'components/Page';
+import Patient from '../Patient'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -56,13 +58,14 @@ const PickupView = () => {
                 <h2>Scheduled Date: {pickup.scheduled_date}</h2>
                 <h2>Authorisation Status: {pickup.is_authorised}</h2>
                 <h2>Pickup Status: {pickup.pickup_status}</h2>
-            </Box>
-            <Box
-              mt={3}
-              display="flex"
-              justifyContent="center"
-            >
-            
+
+                <Typography variant="h2">
+                    <Patient 
+                        className={classes.patient} 
+                        patient_id={pickup.patient_id}
+                    />
+                </Typography>
+                
             </Box>
           </Container>
         </Page>

@@ -5,7 +5,6 @@ import {
   Grid,
   makeStyles
 } from '@material-ui/core';
-import { Pagination } from '@material-ui/lab';
 import Page from 'components/Page';
 import Toolbar from './Toolbar';
 import PickupCard from './PickupCard';
@@ -69,17 +68,6 @@ const PickupListView = () => {
               </Grid>
             ))}
           </Grid>
-        </Box>
-        <Box
-          mt={3}
-          display="flex"
-          justifyContent="center"
-        >
-          <Pagination
-            color="primary"
-            count={3}
-            size="small"
-          />
         </Box>
       </Container>
     </Page>
