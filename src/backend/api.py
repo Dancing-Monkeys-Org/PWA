@@ -533,14 +533,11 @@ def is_authorised(pickup_id):
         requirement_met = "No"
         minimum_last_test_date = datetime.datetime.now() - datetime.timedelta(days=requirement.testfrequency)
 
-        # print(patient_id)
-        print(requirement.standardtestid)
-
         query2 = db.session.query(patienthistory).filter(patienthistory.patientid == patient_id,
                                                          patienthistory.standardtestid == requirement.standardtestid,
                                                          patienthistory.dateconducted > minimum_last_test_date)
 
-        if query2.count() > 1:
+        if query2.count() > 0:
             # if query.last().dateconducted < minimum_last_test_date:
             requirement_met = "Yes"
 
