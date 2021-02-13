@@ -200,6 +200,59 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/sensitivity_id_not_found"
+  
+  /api/drug:
+    get:
+      summary: Returns drug information with provided drug ID
+      operationId: getDrug
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: drug_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/drug"
+        "400":
+            schema:
+                $ref: "#/definitions/drug_id_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/drug_id_not_found"
+
+  /api/bloodwork/request:
+    get:
+      summary: Creates a testrequest from given parameters
+      operationId: requestBloodwork
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: patient_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: standard_test_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: message
+          schema:
+            type: string
+          required: true
+      responses:
+        "400":
+            schema:
+                $ref: "#/definitions/bloodwork_request_parameter_required"
                         
 definitions:
     auth:
@@ -211,14 +264,12 @@ definitions:
             password: 
                 type: "string"
                 example: "password"
-
     auth_token:
         type: "object"
         properties:
             access_token:
                 type: "string"
-                example: "Generated access token"
-                
+                example: "Generated access token"           
     auth_wrong_password:
         type: "object"
         properties:
@@ -357,6 +408,34 @@ definitions:
             status_code:
                 type: "integer"
                 example: 400
+    bloodwork_request_parameter_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Parameter required: {parameter}"
+            status_code:
+                type: "integer"
+                example: 400
+    drug_id_parameter_required:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Parameter required: drug_id"
+            status_code:
+                type: "integer"
+                example: 400
+    drug_id_not_found:
+        type: "object"
+        properties:
+          message:
+                type: "string"
+                example: "No drug with that ID could be found"
+            status_code:
+                type: "integer"
+                example: 404
+    
     pickup:
         type: "object"
         properties:
@@ -529,3 +608,12 @@ definitions:
               pickup_status:
                 type: "string"
                 example: "AWAITING_PICKUP"
+      drug:
+        type: "object"
+        properties:
+          drug_id:
+              type: "string"
+              example: "UUID of drug"
+          name:
+              type: "string"
+              example: "Aspirin"
