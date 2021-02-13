@@ -7,18 +7,15 @@ import LoginView from './views/auth/LoginView';
 import NotFoundView from './views/errors/NotFoundView';
 import PatientListView from './views/patient/PatientListView';
 import PickupListView from './views/pickup/PickupListView';
-
+import isLoggedIn from './utils/isLoggedIn';
 
 const routes = () => {
-  const loginVal = JSON.parse(localStorage.getItem("login"));
-  let isLoggedIn = false;
-  if (loginVal !== null) {
-    isLoggedIn = loginVal.login ?? false;
-  }
+  let loginStatus = false;
+  loginStatus = isLoggedIn();
   return [
     {
       path: 'app',
-      element: isLoggedIn ? <DashboardLayout /> : <LoginView />,
+      element: loginStatus ? <DashboardLayout /> : <LoginView />,
       children: [
         { path: 'patients', element: <PatientListView /> },
         { path: 'dashboard', element: <DashboardView /> },
@@ -28,7 +25,7 @@ const routes = () => {
     },
     {
       path: '/',
-      element: isLoggedIn ? <MainLayout /> : <LoginView />,
+      element: loginStatus ? <MainLayout /> : <LoginView />,
       children: [
         { path: 'login', element: <LoginView /> },
         { path: '404', element: <NotFoundView /> },
