@@ -49,88 +49,25 @@ def foreign_key_entries(db):
 
 
 def test_not_authorised(client):
-    res = client.get("/api/pickup/authorised")
+    res = client.patch("/api/pickup/status")
     assert res.status_code == 401
     assert "patient_id" not in str(res.json)
 
 
-def test_pickup_no_pickup_id(client, db):
+def test_invalid_role(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
-    res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token})
+    res = client.patch("/api/pickup/status", headers={'Authorization': "Bearer " + token})
+
+    assert res.status_code == 401
+    assert "patient_id" not in str(res.json)
+
+
+def test_no_pickup_id(client, db):
+    token = auth.get_access_token(client, db, "test_user", "test_password", "pharmacist")
+
+    res = client.patch("/api/pickup/status", headers={'Authorization': "Bearer " + token})
 
     assert res.status_code == 400
 
     assert "forename" not in str(res.json)
-
-
-def test_no_required_tests(client, db):
-    foreign_key_entries(db)
-
-    token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
-
-    res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token},
-                     query_string={"pickup_id": "5d8caa1d-9580-4e68-89f3-ff3c23eb3e55"})
-
-    assert res.status_code == 200
-    assert res.json['is_authorised']
-
-
-def test_requirements_not_met(client, db):
-    foreign_key_entries(db)
-
-    db.session.execute('INSERT INTO requiredtests () VALUES'
-                       '("requiredtest1", "56f5dc7e-2843-4cd9-87e8-f19f92c4ad0e", "test1", "non", 60),'
-                       '("requiredtest2", "56f5dc7e-2843-4cd9-87e8-f19f92c4ad0e", "test2", "non", 30);')
-
-    db.session.execute("INSERT INTO patienthistory () VALUES"
-                       "('history1', 'a714ead6-a451-4d54-ae56-11e1df6ac032',  'test1', '2020-12-31', 1),"
-                       "('history2', 'a714ead6-a451-4d54-ae56-11e1df6ac032', 'test2', '2020-12-31', 1);")
-
-    token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
-
-    res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token},
-                     query_string={"pickup_id": "91de0111-a5c7-4e38-bc6d-5935172c1c70"})
-
-    assert res.status_code == 200
-    assert not res.json['is_authorised']
-
-
-def test_requirements_met_due_to_discretion(client, db):
-    foreign_key_entries(db)
-
-    db.session.execute('INSERT INTO requiredtests () VALUES'
-                       '("requiredtest3", "d99ac869-88c6-4467-a7ac-80d4e2895a91", "test1", "non", 60),'
-                       '("requiredtest4", "d99ac869-88c6-4467-a7ac-80d4e2895a91", "test2", "full", 30);')
-
-    db.session.execute("INSERT INTO patienthistory () VALUES"
-                       "('history3', '510b5ab9-3685-46ec-8082-3ef8ba848688',  'test1', '2020-12-31', 1),"
-                       "('history4', '510b5ab9-3685-46ec-8082-3ef8ba848688', 'test2', '2020-12-31', 1);")
-
-    token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
-
-    res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token},
-                     query_string={"pickup_id": "4c826247-df94-4f8f-8a55-faf98a4912bd"})
-
-    assert res.status_code == 200
-    assert res.json['is_authorised']
-
-
-def test_requirements_met(client, db):
-    foreign_key_entries(db)
-
-    db.session.execute('INSERT INTO requiredtests () VALUES'
-                       '("requiredtest3", "d99ac869-88c6-4467-a7ac-80d4e2895a91", "test1", "non", 60),'
-                       '("requiredtest4", "d99ac869-88c6-4467-a7ac-80d4e2895a91", "test2", "non", 90);')
-
-    db.session.execute("INSERT INTO patienthistory () VALUES"
-                       "('history3', '510b5ab9-3685-46ec-8082-3ef8ba848688',  'test1', '2020-12-31', 1),"
-                       "('history4', '510b5ab9-3685-46ec-8082-3ef8ba848688', 'test2', '2020-12-31', 1);")
-
-    token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
-
-    res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token},
-                     query_string={"pickup_id": "4c826247-df94-4f8f-8a55-faf98a4912bd"})
-
-    assert res.status_code == 200
-    assert res.json['is_authorised']

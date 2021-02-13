@@ -66,6 +66,11 @@ paths:
     patch:
       summary: Updates pickup status
       operationId: updatePickupStatus
+      content:
+          application/json:
+              schema:
+                $ref: "#/definitions/update_pickups_request_body"
+
       produces:
       - "application/json"
       parameters:
@@ -225,6 +230,11 @@ paths:
                 $ref: "#/definitions/sensitivity_id_not_found"
                         
 definitions:
+    update_pickups_request_body:
+        type: "object"
+        properties:
+            type: status
+            example: "AWAITING_CONFIRMATION"
     auth:
         type: "object"
         properties:
