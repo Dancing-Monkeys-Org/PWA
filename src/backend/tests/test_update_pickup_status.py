@@ -58,7 +58,7 @@ def test_invalid_role(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
     res = client.patch("/api/pickup/status", headers={'Authorization': "Bearer " + token},
-                       body={"status": "COLLECTED"})
+                       json={"status": "COLLECTED"})
 
     assert res.status_code == 401
     assert "patient_id" not in str(res.json)
