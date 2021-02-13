@@ -420,7 +420,7 @@ def update_pickup_status():
     if query.count() < 1:
         return get_default_response({"message": "No pickup with that ID could be found",
                                      "status_code": 404}), 404
-    print(pickup.pickupstatus)
+
     if pickup.pickupstatus == "AWAITING_PHARMACIST_AUTHORISATION":
         authorised = json.loads(is_authorised(pickup_id).data)
         if not authorised['is_authorised']:
