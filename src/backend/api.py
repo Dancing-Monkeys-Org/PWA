@@ -9,6 +9,7 @@ import flask_praetorian
 import json
 import os
 import uuid
+import datetime
 
 statuses = ["unauthorised", "authorised"]
 
@@ -54,16 +55,16 @@ class medicalpickups(db.Model):
     pickupstatus = db.Column(db.String(25))
 
     @classmethod
-    def lookup(cls, pickupId):
-        return cls.query.filter_by(pickupId=pickupId).one_or_none()
+    def lookup(cls, pickupid):
+        return cls.query.filter_by(pickupid=pickupid).one_or_none()
 
     @classmethod
-    def identify(cls, pickupId):
-        return cls.query.get(pickupId)
+    def identify(cls, pickupid):
+        return cls.query.get(pickupid)
 
     @property
     def identity(self):
-        return self.pickupId
+        return self.pickupid
 
 
 class drugs(db.Model):
@@ -95,7 +96,7 @@ class contactdetails(db.Model):
 
     @classmethod
     def lookup(cls, contactdetailid):
-        return cls.query.filter_by(pickupId=contactdetailid).one_or_none()
+        return cls.query.filter_by(contactdetailid=contactdetailid).one_or_none()
 
     @classmethod
     def identify(cls, contactdetailid):
@@ -112,7 +113,7 @@ class standardtests(db.Model):
 
     @classmethod
     def lookup(cls, testname):
-        return cls.query.filter_by(pickupId=testname).one_or_none()
+        return cls.query.filter_by(testname=testname).one_or_none()
 
     @classmethod
     def identify(cls, testname):
@@ -135,7 +136,7 @@ class patients(db.Model):
 
     @classmethod
     def lookup(cls, patientid):
-        return cls.query.filter_by(pickupId=patientid).one_or_none()
+        return cls.query.filter_by(patientid=patientid).one_or_none()
 
     @classmethod
     def identify(cls, patientid):
@@ -153,7 +154,7 @@ class gps(db.Model):
 
     @classmethod
     def lookup(cls, testid):
-        return cls.query.filter_by(pickupId=testid).one_or_none()
+        return cls.query.filter_by(testid=testid).one_or_none()
 
     @classmethod
     def identify(cls, testid):
@@ -171,7 +172,7 @@ class sensitivities(db.Model):
 
     @classmethod
     def lookup(cls, sensitivityid):
-        return cls.query.filter_by(pickupId=sensitivityid).one_or_none()
+        return cls.query.filter_by(sensitivityid=sensitivityid).one_or_none()
 
     @classmethod
     def identify(cls, sensitivityid):
@@ -190,7 +191,7 @@ class testitems(db.Model):
 
     @classmethod
     def lookup(cls, testitemid):
-        return cls.query.filter_by(pickupId=testitemid).one_or_none()
+        return cls.query.filter_by(testitemid=testitemid).one_or_none()
 
     @classmethod
     def identify(cls, testitemid):
@@ -199,6 +200,25 @@ class testitems(db.Model):
     @property
     def identity(self):
         return self.testitemid
+
+class testrequests(db.Model):
+    testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    daterequested = db.Column(db.Date())
+    standardtestid = db.Column(db.String(36))
+    patientid = db.Column(db.String(36))
+    gpid = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, testrequestid):
+        return cls.query.filter_by(testrequestid=testrequestid).one_or_none()
+
+    @classmethod
+    def identify(cls, testrequestid):
+        return cls.query.get(testrequestid)
+
+    @property
+    def identity(self):
+        return self.testrequestid
 
 
 def init():
@@ -483,3 +503,24 @@ def get_sensitivity():
     }
 
     return get_default_response(return_value)
+
+
+@app.route('/api/bloodwork/request', methods=['POST'])
+@flask_praetorian.auth_required
+def request_bloodwork():
+    if request.args.get("patient_id") is None:
+        return get_default_response({"message": "Parameter required: patient_id",
+                                     "status_code": 400}), 400
+    if request.args.get("standard_test_id") is None:
+        return get_default_response({"message": "Parameter required: standard_test_id",
+                                     "status_code": 400}), 400
+    if request.args.get("message") is None:
+        return get_default_response({"message": "Parameter required: message",
+                                     "status_code": 400}), 400
+    patientRecord = patients.lookup(request.args.get("patient_id"))
+    patientGp = patientRecord.gpid
+    newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
+    db.session.add(newRecord)
+    db.session.commit()
+    return get_default_response()
+    # TODO send email to GP
