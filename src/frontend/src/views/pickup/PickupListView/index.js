@@ -5,7 +5,6 @@ import {
   Grid,
   makeStyles
 } from '@material-ui/core';
-import { Pagination } from '@material-ui/lab';
 import Page from 'components/Page';
 import Toolbar from './Toolbar';
 import PickupCard from './PickupCard';
@@ -26,10 +25,13 @@ const PickupListView = () => {
   const classes = useStyles();
   const [pickups, updatePickups] = useState([]);
 
+  const loginVal = JSON.parse(localStorage.getItem("login"));
+  const token = loginVal.token;
+
   React.useEffect(function effectFunction() {
     fetch('https://dancingmonkeys.tech/api/pickups', { 
           headers:  {
-            'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTI4MDAzMjMsImV4cCI6MTYxMjg4NjcyMywianRpIjoiMGVlZGU2N2YtMzI3Ny00MzE5LTg3YjAtMTBiZmZkYzA0NjRmIiwiaWQiOiJjZWUyOGRmZC1iZjZjLTQxMzQtODA4ZC04ZTI4ZTcwY2FmZjUiLCJybHMiOiIiLCJyZl9leHAiOjE2MTUzOTIzMjN9.UnsCDNkkgu6gM7n6gNNoTZg9qbtbyDur-zF5vvIpYaE',
+            'Authorization': `Bearer ${token}`,
             'Accept': '*/*'
           }
         })
@@ -66,17 +68,6 @@ const PickupListView = () => {
               </Grid>
             ))}
           </Grid>
-        </Box>
-        <Box
-          mt={3}
-          display="flex"
-          justifyContent="center"
-        >
-          <Pagination
-            color="primary"
-            count={3}
-            size="small"
-          />
         </Box>
       </Container>
     </Page>

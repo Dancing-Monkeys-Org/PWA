@@ -11,6 +11,7 @@ import os
 import uuid
 import datetime
 
+
 statuses = ["unauthorised", "authorised"]
 
 db = flask_sqlalchemy.SQLAlchemy()
@@ -183,23 +184,44 @@ class sensitivities(db.Model):
         return self.sensitivityid
 
 
-class testitems(db.Model):
-    testitemid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    testid = db.Column(db.String(36))
-    name = db.Column(db.String(255))
-    status = db.Column(db.String(25))
+class requiredtests(db.Model):
+    requiredtestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    drugid = db.Column(db.String(36))
+    standardtestid = db.Column(db.String(36))
+    pharmacistdiscretion = db.Column(db.String(255))
+    testfrequency = db.Column(db.Integer())
 
     @classmethod
-    def lookup(cls, testitemid):
-        return cls.query.filter_by(testitemid=testitemid).one_or_none()
+    def lookup(cls, requiredtestid):
+        return cls.query.filter_by(requiredtestid=requiredtestid).one_or_none()
 
     @classmethod
-    def identify(cls, testitemid):
-        return cls.query.get(testitemid)
+    def identify(cls, requiredtestid):
+        return cls.query.get(requiredtestid)
 
     @property
     def identity(self):
-        return self.testitemid
+        return self.requiredtestid
+
+
+class patienthistory(db.Model):
+    patienthistoryid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    patientid = db.Column(db.String(36))
+    standardtestid = db.Column(db.String(36))
+    dateconducted = db.Column(db.Date())
+    ispassed = db.Column(db.Boolean())
+
+    @classmethod
+    def lookup(cls, patienthistoryid):
+        return cls.query.filter_by(pickupId=patienthistoryid).one_or_none()
+
+    @classmethod
+    def identify(cls, patienthistoryid):
+        return cls.query.get(patienthistoryid)
+
+    @property
+    def identity(self):
+        return self.patienthistoryid
 
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
@@ -504,7 +526,6 @@ def get_sensitivity():
 
     return get_default_response(return_value)
 
-
 @app.route('/api/bloodwork/request', methods=['POST'])
 @flask_praetorian.auth_required
 def request_bloodwork():
@@ -524,3 +545,57 @@ def request_bloodwork():
     db.session.commit()
     return get_default_response()
     # TODO send email to GP
+
+
+def is_authorised(pickup_id):
+    if pickup_id is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+
+    pickup = query.first()
+
+    drug_id = pickup.drugid
+    patient_id = pickup.patientid
+    scheduled_date = pickup.scheduleddate
+
+    requirements = []
+
+    authorised = True
+
+    # Loops through all test requirements
+    for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
+        minimum_last_test_date = scheduled_date - datetime.timedelta(days=requirement.testfrequency)
+
+        # Queries the database for tests in the patients medical history that would match the requirements for the drug
+        query2 = db.session.query(patienthistory).filter(patienthistory.patientid == patient_id,
+                                                         patienthistory.standardtestid == requirement.standardtestid,
+                                                         patienthistory.dateconducted > minimum_last_test_date)
+        if query2.count() > 0:
+            requirement_met = "Yes"
+        else:
+            requirement_met = "No"
+            # If pharmacist has discretion to authorise pickup without test then requirements is considered to be met
+            if requirement.pharmacistdiscretion == "non":
+                # If any of the requirements are not met then the pharmacist cannot authorise the pickup
+                authorised = False
+
+        requirements.append({"requirement_id": requirement.requiredtestid,
+                             "drug_id": requirement.drugid,
+                             "test_id": requirement.standardtestid,
+                             "pharmacist_discretion": requirement.pharmacistdiscretion,
+                             "minimum_last_test_date": str(minimum_last_test_date),
+                             "requirement_met": requirement_met})
+
+    return get_default_response({"is_authorised": authorised, "requirements": requirements})
+
+
+@app.route('/api/pickup/authorised', methods=['GET'])
+@flask_praetorian.auth_required
+def get_pickup_authorised():
+    return is_authorised(request.args.get("pickup_id"))
