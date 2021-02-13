@@ -526,6 +526,7 @@ def get_sensitivity():
 
     return get_default_response(return_value)
 
+
 @app.route('/api/bloodwork/request', methods=['POST'])
 @flask_praetorian.auth_required
 def request_bloodwork():

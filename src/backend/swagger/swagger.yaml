@@ -432,7 +432,7 @@ definitions:
           message:
                 type: "string"
                 example: "No drug with that ID could be found"
-            status_code:
+          status_code:
                 type: "integer"
                 example: 404
     
@@ -608,7 +608,7 @@ definitions:
               pickup_status:
                 type: "string"
                 example: "AWAITING_PICKUP"
-      drug:
+    drug:
         type: "object"
         properties:
           drug_id:
