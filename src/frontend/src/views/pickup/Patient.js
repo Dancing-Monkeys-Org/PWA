@@ -18,7 +18,7 @@ const Patient = ({ className, patient_id, ...rest }) => {
             .then(data => {
                 updatePatient(data);
             });
-      }, []);
+      }, [patient_id]);
 
     return (
         <div className={className}>
