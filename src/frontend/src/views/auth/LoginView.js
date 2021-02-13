@@ -52,7 +52,7 @@ const LoginView = () => {
               password: Yup.string().max(255).required('Password is required')
             })}
             onSubmit={() => {
-              isLoggedIn() ? navigate('/app/pickups', { replace: true }) : navigate('/login', { replace: true });
+              isLoggedIn() ? navigate('/app/pickups', { replace: true }) : navigate('/login', { replace: false });
             }}
           >
             {({
