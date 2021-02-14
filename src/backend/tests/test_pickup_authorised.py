@@ -37,9 +37,9 @@ def foreign_key_entries(db):
                        '("510b5ab9-3685-46ec-8082-3ef8ba848688", "f8905548-9f2b-4040-b84c-5b8f68320f81", "24243d1e-597b-49fb-b625-e65c5b9037f1", "John", "Smith", "M", 73, "1d46cb3a-266c-4d2f-944d-fade75b0a42e");')
 
     db.session.execute('INSERT INTO medicalpickups () VALUES'
-                       '("91de0111-a5c7-4e38-bc6d-5935172c1c70", "a714ead6-a451-4d54-ae56-11e1df6ac032", "56f5dc7e-2843-4cd9-87e8-f19f92c4ad0e", 1, NOW(), NOW(), 1, "AWAITING_PICKUP"),'
-                       '("5d8caa1d-9580-4e68-89f3-ff3c23eb3e55", "56ba0568-448d-42db-bec3-9a759d6f9908", "fcc62716-5d81-4aa6-aab8-0468a50923fc", 1, NOW(), NOW(), 1, "AWAITING_PICKUP"),'
-                       '("4c826247-df94-4f8f-8a55-faf98a4912bd", "510b5ab9-3685-46ec-8082-3ef8ba848688", "d99ac869-88c6-4467-a7ac-80d4e2895a91", 1, NOW(), NOW(), 1, "AWAITING_PICKUP");')
+                       '("91de0111-a5c7-4e38-bc6d-5935172c1c70", "a714ead6-a451-4d54-ae56-11e1df6ac032", "56f5dc7e-2843-4cd9-87e8-f19f92c4ad0e", 1, "2021-02-13", NOW(), 1, "AWAITING_PICKUP"),'
+                       '("5d8caa1d-9580-4e68-89f3-ff3c23eb3e55", "56ba0568-448d-42db-bec3-9a759d6f9908", "fcc62716-5d81-4aa6-aab8-0468a50923fc", 1, "2021-02-13", NOW(), 1, "AWAITING_PICKUP"),'
+                       '("4c826247-df94-4f8f-8a55-faf98a4912bd", "510b5ab9-3685-46ec-8082-3ef8ba848688", "d99ac869-88c6-4467-a7ac-80d4e2895a91", 1, "2021-02-13", NOW(), 1, "AWAITING_PICKUP");')
 
     db.session.execute('INSERT INTO standardtests ()'
                        'VALUES'
@@ -47,13 +47,14 @@ def foreign_key_entries(db):
                        '("test2", "Blood test 2"),'
                        '("test3", "Blood test 3");')
 
+
 def test_not_authorised(client):
     res = client.get("/api/pickup/authorised")
     assert res.status_code == 401
     assert "patient_id" not in str(res.json)
 
 
-def test_patient_no_patient_id(client, db):
+def test_pickup_no_pickup_id(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
     res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token})

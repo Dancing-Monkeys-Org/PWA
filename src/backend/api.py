@@ -243,6 +243,26 @@ class testrequests(db.Model):
         return self.testrequestid
 
 
+class testrequests(db.Model):
+    testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    daterequested = db.Column(db.Date())
+    standardtestid = db.Column(db.String(36))
+    patientid = db.Column(db.String(36))
+    gpid = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, testrequestid):
+        return cls.query.filter_by(testrequestid=testrequestid).one_or_none()
+
+    @classmethod
+    def identify(cls, testrequestid):
+        return cls.query.get(testrequestid)
+
+    @property
+    def identity(self):
+        return self.testrequestid
+
+
 def init():
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, Users)
@@ -261,7 +281,7 @@ def init():
             db.session.add(Users(
               username=DEFAULT_ACCOUNT_USERNAME,
               password=guard.hash_password(DEFAULT_ACCOUNT_PASSWORD),
-              role=DEFAULT_ACCOUNT_USERNAME
+              role=DEFAULT_ACCOUNT_ROLE
                 ))
         db.session.commit()
 
@@ -380,6 +400,55 @@ def get_pickup():
                     "pickup_status": instance.pickupstatus}
 
     return get_default_response(return_value)
+
+
+@app.route('/api/pickup/status', methods=['PATCH'])
+@flask_praetorian.auth_required
+def update_pickup_status():
+    valid_pickup_states = ["AWAITING_PHARMACIST_AUTHORISATION",
+                           "AWAITING_CONFIRMATION",
+                           "AWAITING_ASSEMBLY",
+                           "AWAITING_COLLECTION",
+                           "COLLECTED"]
+
+    if flask_praetorian.current_user().role != "pharmacist":
+        return get_default_response({"message": "Pharmacist role required to update pickup status",
+                                     "status_code": 401}), 401
+
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    pickup_id = request.args.get("pickup_id")
+
+    if request.json is None:
+        return get_default_response({"message": "JSON body required",
+                                     "status_code": 400}), 400
+
+    if "status" not in request.json:
+        return get_default_response({"message": "Field required in JSON body: status",
+                                     "status_code": 400}), 400
+
+    if request.json['status'] not in valid_pickup_states:
+        return get_default_response({"message": request.json['status'] + " Is not a valid status. This list of valid "
+                                                                         "status are " + str(valid_pickup_states),
+                                     "status_code": 400}), 400
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+    pickup = query.first()
+    if query.count() < 1:
+        return get_default_response({"message": "No pickup with that ID could be found",
+                                     "status_code": 404}), 404
+
+    if pickup.pickupstatus == "AWAITING_PHARMACIST_AUTHORISATION":
+        authorised = json.loads(is_authorised(pickup_id).data)
+        if not authorised['is_authorised']:
+            return get_default_response({"message": "Cannot update status as pickup has unmet requirements",
+                                         "status_code": 400}), 400
+
+    pickup.pickupstatus = request.json['status']
+    db.session.commit()
+    return get_default_response({"message": "Successfully updated pickup status"})
 
 
 @app.route('/api/drug', methods=['GET'])
