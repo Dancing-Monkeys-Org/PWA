@@ -223,25 +223,6 @@ class patienthistory(db.Model):
     def identity(self):
         return self.patienthistoryid
 
-class testrequests(db.Model):
-    testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    daterequested = db.Column(db.Date())
-    standardtestid = db.Column(db.String(36))
-    patientid = db.Column(db.String(36))
-    gpid = db.Column(db.String(36))
-
-    @classmethod
-    def lookup(cls, testrequestid):
-        return cls.query.filter_by(testrequestid=testrequestid).one_or_none()
-
-    @classmethod
-    def identify(cls, testrequestid):
-        return cls.query.get(testrequestid)
-
-    @property
-    def identity(self):
-        return self.testrequestid
-
 
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
@@ -668,3 +649,27 @@ def is_authorised(pickup_id):
 @flask_praetorian.auth_required
 def get_pickup_authorised():
     return is_authorised(request.args.get("pickup_id"))
+
+
+@app.route('/api/send/sms', methods=['POST'])
+@flask_praetorian.auth_required
+def send_pickup_alert():
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    pickup_id = request.args.get("pickup_id")
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+
+    # query = db.session.query(contactdetails).filter_by(pickupid=pickup_id)
+
+    query = db.session.query(patients).filter_by(patientid=query.first().patientid)
+
+    contact_details = db.session.query(contactdetails).filter_by(contactdetailid=query.first().contactdetailid).first()
+
+    return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress})
