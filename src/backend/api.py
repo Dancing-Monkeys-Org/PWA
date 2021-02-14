@@ -541,10 +541,10 @@ def request_bloodwork():
                                      "status_code": 400}), 400
     patientRecord = patients.lookup(request.args.get("patient_id"))
     patientGp = patientRecord.gpid
-    newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
+    newRecord = testrequests(daterequested=datetime.datetime.now(), standardtestid=request.args.get("standard_test_id"), patientid=request.args.get("patient_id"), gpid=patientGp)
     db.session.add(newRecord)
     db.session.commit()
-    return get_default_response()
+    return get_default_response({"message": "Successfully created test request"})
     # TODO send email to GP
 
 

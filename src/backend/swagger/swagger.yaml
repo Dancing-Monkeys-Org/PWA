@@ -250,6 +250,9 @@ paths:
             type: string
           required: true
       responses:
+        "200":
+            schema:
+                $ref: "#/definitions/bloodwork_request_parameter_required"
         "400":
             schema:
                 $ref: "#/definitions/bloodwork_request_parameter_required"
@@ -282,6 +285,12 @@ definitions:
             status_code:
                 type: "integer"
                 example: 401
+    bloodwork_sucessful_request:
+        type: "object"
+        properties:
+            message:
+                type: "string"
+                example: "Successfully created test request"
     pick_up_parameter_required:
         type: "object"
         properties:
