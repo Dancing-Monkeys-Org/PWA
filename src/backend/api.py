@@ -287,6 +287,7 @@ DEFAULT_ACCOUNT_PASSWORD = os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
 DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
+FROM_NUMBER = os.environ['TWILIO_FROM_NUMBER']
 init()
 
 
@@ -662,6 +663,7 @@ def send_pickup_alert():
                                      "status_code": 400}), 400
 
     pickup_id = request.args.get("pickup_id")
+    message_body = request.json['message']
 
     query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
 
@@ -676,11 +678,12 @@ def send_pickup_alert():
     client = Client(account_sid, auth_token)
 
     message = client.messages.create(
-        body="Join Earth's mightiest heroes. Like Kevin Bacon.",
-        from_='+12095022561',
-        to='+447984439755'
+        body=message_body,
+        from_=FROM_NUMBER,
+        to=contact_details.phonenumber
         )
 
-    return get_default_response(message)
+    # return get_default_response(message)
 
-    # return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress})
+    return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
+                                 "message": message_body})
