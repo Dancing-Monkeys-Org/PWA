@@ -10,6 +10,7 @@ import json
 import os
 import uuid
 import datetime
+from twilio.rest import Client
 
 
 statuses = ["unauthorised", "authorised"]
@@ -284,6 +285,8 @@ DB_NAME = os.environ.get('DB_NAME')
 DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
 DEFAULT_ACCOUNT_PASSWORD = os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
 DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
 init()
 
 
@@ -666,10 +669,18 @@ def send_pickup_alert():
         return get_default_response({"message": "No pick up with that ID could be found",
                                      "status_code": 404}), 404
 
-    # query = db.session.query(contactdetails).filter_by(pickupid=pickup_id)
-
     query = db.session.query(patients).filter_by(patientid=query.first().patientid)
 
     contact_details = db.session.query(contactdetails).filter_by(contactdetailid=query.first().contactdetailid).first()
 
-    return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress})
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        body="Join Earth's mightiest heroes. Like Kevin Bacon.",
+        from_='+12095022561',
+        to='+447984439755'
+        )
+
+    return get_default_response(message)
+
+    # return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress})
