@@ -690,7 +690,15 @@ def request_bloodwork():
     test_name = standardtests.lookup(request.args.get("standard_test_id")).testname
 
     send_email(gp_contact.emailaddress,
-               "This is a formal request for " + test_name + "\n\n" + request.args.get("message"))
+               "This is a formal request for " + test_name + "\n\n"
+               + "Patient details: \n\n" +
+               "Patient ID: " + patientRecord.patientid + "\n" +
+               "forename: " + patientRecord.forename + "\n" +
+               "surname: " + patientRecord.surname + "\n" +
+               "sex: " + patientRecord.sex + "\n" +
+               "age: " + str(patientRecord.age) + "\n\n\n" +
+               "Pharmacist notes:\n"
+               + request.args.get("message"))
 
     # newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
     # db.session.add(newRecord)
