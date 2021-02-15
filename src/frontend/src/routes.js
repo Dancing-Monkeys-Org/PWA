@@ -20,6 +20,7 @@ const routes = () => {
         { path: 'patients', element: <PatientListView /> },
         { path: 'dashboard', element: <DashboardView /> },
         { path: 'pickups', element: <PickupListView /> },
+        { path: 'pickup/:id', element: <PickupView />},
         { path: '*', element: <Navigate to="/404" /> }
       ]
     },

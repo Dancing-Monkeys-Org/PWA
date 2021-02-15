@@ -9,6 +9,8 @@ import flask_praetorian
 import json
 import os
 import uuid
+import datetime
+
 
 statuses = ["unauthorised", "authorised"]
 
@@ -54,16 +56,16 @@ class medicalpickups(db.Model):
     pickupstatus = db.Column(db.String(25))
 
     @classmethod
-    def lookup(cls, pickupId):
-        return cls.query.filter_by(pickupId=pickupId).one_or_none()
+    def lookup(cls, pickupid):
+        return cls.query.filter_by(pickupid=pickupid).one_or_none()
 
     @classmethod
-    def identify(cls, pickupId):
-        return cls.query.get(pickupId)
+    def identify(cls, pickupid):
+        return cls.query.get(pickupid)
 
     @property
     def identity(self):
-        return self.pickupId
+        return self.pickupid
 
 
 class drugs(db.Model):
@@ -95,7 +97,7 @@ class contactdetails(db.Model):
 
     @classmethod
     def lookup(cls, contactdetailid):
-        return cls.query.filter_by(pickupId=contactdetailid).one_or_none()
+        return cls.query.filter_by(contactdetailid=contactdetailid).one_or_none()
 
     @classmethod
     def identify(cls, contactdetailid):
@@ -112,7 +114,7 @@ class standardtests(db.Model):
 
     @classmethod
     def lookup(cls, testname):
-        return cls.query.filter_by(pickupId=testname).one_or_none()
+        return cls.query.filter_by(testname=testname).one_or_none()
 
     @classmethod
     def identify(cls, testname):
@@ -135,7 +137,7 @@ class patients(db.Model):
 
     @classmethod
     def lookup(cls, patientid):
-        return cls.query.filter_by(pickupId=patientid).one_or_none()
+        return cls.query.filter_by(patientid=patientid).one_or_none()
 
     @classmethod
     def identify(cls, patientid):
@@ -153,7 +155,7 @@ class gps(db.Model):
 
     @classmethod
     def lookup(cls, testid):
-        return cls.query.filter_by(pickupId=testid).one_or_none()
+        return cls.query.filter_by(testid=testid).one_or_none()
 
     @classmethod
     def identify(cls, testid):
@@ -171,7 +173,7 @@ class sensitivities(db.Model):
 
     @classmethod
     def lookup(cls, sensitivityid):
-        return cls.query.filter_by(pickupId=sensitivityid).one_or_none()
+        return cls.query.filter_by(sensitivityid=sensitivityid).one_or_none()
 
     @classmethod
     def identify(cls, sensitivityid):
@@ -182,23 +184,83 @@ class sensitivities(db.Model):
         return self.sensitivityid
 
 
-class testitems(db.Model):
-    testitemid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    testid = db.Column(db.String(36))
-    name = db.Column(db.String(255))
-    status = db.Column(db.String(25))
+class requiredtests(db.Model):
+    requiredtestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    drugid = db.Column(db.String(36))
+    standardtestid = db.Column(db.String(36))
+    pharmacistdiscretion = db.Column(db.String(255))
+    testfrequency = db.Column(db.Integer())
 
     @classmethod
-    def lookup(cls, testitemid):
-        return cls.query.filter_by(pickupId=testitemid).one_or_none()
+    def lookup(cls, requiredtestid):
+        return cls.query.filter_by(requiredtestid=requiredtestid).one_or_none()
 
     @classmethod
-    def identify(cls, testitemid):
-        return cls.query.get(testitemid)
+    def identify(cls, requiredtestid):
+        return cls.query.get(requiredtestid)
 
     @property
     def identity(self):
-        return self.testitemid
+        return self.requiredtestid
+
+
+class patienthistory(db.Model):
+    patienthistoryid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    patientid = db.Column(db.String(36))
+    standardtestid = db.Column(db.String(36))
+    dateconducted = db.Column(db.Date())
+    ispassed = db.Column(db.Boolean())
+
+    @classmethod
+    def lookup(cls, patienthistoryid):
+        return cls.query.filter_by(pickupId=patienthistoryid).one_or_none()
+
+    @classmethod
+    def identify(cls, patienthistoryid):
+        return cls.query.get(patienthistoryid)
+
+    @property
+    def identity(self):
+        return self.patienthistoryid
+
+class testrequests(db.Model):
+    testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    daterequested = db.Column(db.Date())
+    standardtestid = db.Column(db.String(36))
+    patientid = db.Column(db.String(36))
+    gpid = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, testrequestid):
+        return cls.query.filter_by(testrequestid=testrequestid).one_or_none()
+
+    @classmethod
+    def identify(cls, testrequestid):
+        return cls.query.get(testrequestid)
+
+    @property
+    def identity(self):
+        return self.testrequestid
+
+
+class testrequests(db.Model):
+    testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    daterequested = db.Column(db.Date())
+    standardtestid = db.Column(db.String(36))
+    patientid = db.Column(db.String(36))
+    gpid = db.Column(db.String(36))
+
+    @classmethod
+    def lookup(cls, testrequestid):
+        return cls.query.filter_by(testrequestid=testrequestid).one_or_none()
+
+    @classmethod
+    def identify(cls, testrequestid):
+        return cls.query.get(testrequestid)
+
+    @property
+    def identity(self):
+        return self.testrequestid
 
 
 def init():
@@ -219,7 +281,7 @@ def init():
             db.session.add(Users(
               username=DEFAULT_ACCOUNT_USERNAME,
               password=guard.hash_password(DEFAULT_ACCOUNT_PASSWORD),
-              role=DEFAULT_ACCOUNT_USERNAME
+              role=DEFAULT_ACCOUNT_ROLE
                 ))
         db.session.commit()
 
@@ -338,6 +400,55 @@ def get_pickup():
                     "pickup_status": instance.pickupstatus}
 
     return get_default_response(return_value)
+
+
+@app.route('/api/pickup/status', methods=['PATCH'])
+@flask_praetorian.auth_required
+def update_pickup_status():
+    valid_pickup_states = ["AWAITING_PHARMACIST_AUTHORISATION",
+                           "AWAITING_CONFIRMATION",
+                           "AWAITING_ASSEMBLY",
+                           "AWAITING_COLLECTION",
+                           "COLLECTED"]
+
+    if flask_praetorian.current_user().role != "pharmacist":
+        return get_default_response({"message": "Pharmacist role required to update pickup status",
+                                     "status_code": 401}), 401
+
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    pickup_id = request.args.get("pickup_id")
+
+    if request.json is None:
+        return get_default_response({"message": "JSON body required",
+                                     "status_code": 400}), 400
+
+    if "status" not in request.json:
+        return get_default_response({"message": "Field required in JSON body: status",
+                                     "status_code": 400}), 400
+
+    if request.json['status'] not in valid_pickup_states:
+        return get_default_response({"message": request.json['status'] + " Is not a valid status. This list of valid "
+                                                                         "status are " + str(valid_pickup_states),
+                                     "status_code": 400}), 400
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+    pickup = query.first()
+    if query.count() < 1:
+        return get_default_response({"message": "No pickup with that ID could be found",
+                                     "status_code": 404}), 404
+
+    if pickup.pickupstatus == "AWAITING_PHARMACIST_AUTHORISATION":
+        authorised = json.loads(is_authorised(pickup_id).data)
+        if not authorised['is_authorised']:
+            return get_default_response({"message": "Cannot update status as pickup has unmet requirements",
+                                         "status_code": 400}), 400
+
+    pickup.pickupstatus = request.json['status']
+    db.session.commit()
+    return get_default_response({"message": "Successfully updated pickup status"})
 
 
 @app.route('/api/drug', methods=['GET'])
@@ -483,3 +594,77 @@ def get_sensitivity():
     }
 
     return get_default_response(return_value)
+
+@app.route('/api/bloodwork/request', methods=['POST'])
+@flask_praetorian.auth_required
+def request_bloodwork():
+    if request.args.get("patient_id") is None:
+        return get_default_response({"message": "Parameter required: patient_id",
+                                     "status_code": 400}), 400
+    if request.args.get("standard_test_id") is None:
+        return get_default_response({"message": "Parameter required: standard_test_id",
+                                     "status_code": 400}), 400
+    if request.args.get("message") is None:
+        return get_default_response({"message": "Parameter required: message",
+                                     "status_code": 400}), 400
+    patientRecord = patients.lookup(request.args.get("patient_id"))
+    patientGp = patientRecord.gpid
+    newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
+    db.session.add(newRecord)
+    db.session.commit()
+    return get_default_response()
+    # TODO send email to GP
+
+
+def is_authorised(pickup_id):
+    if pickup_id is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+
+    pickup = query.first()
+
+    drug_id = pickup.drugid
+    patient_id = pickup.patientid
+    scheduled_date = pickup.scheduleddate
+
+    requirements = []
+
+    authorised = True
+
+    # Loops through all test requirements
+    for requirement in db.session.query(requiredtests).filter_by(drugid=drug_id):
+        minimum_last_test_date = scheduled_date - datetime.timedelta(days=requirement.testfrequency)
+
+        # Queries the database for tests in the patients medical history that would match the requirements for the drug
+        query2 = db.session.query(patienthistory).filter(patienthistory.patientid == patient_id,
+                                                         patienthistory.standardtestid == requirement.standardtestid,
+                                                         patienthistory.dateconducted > minimum_last_test_date)
+        if query2.count() > 0:
+            requirement_met = "Yes"
+        else:
+            requirement_met = "No"
+            # If pharmacist has discretion to authorise pickup without test then requirements is considered to be met
+            if requirement.pharmacistdiscretion == "non":
+                # If any of the requirements are not met then the pharmacist cannot authorise the pickup
+                authorised = False
+
+        requirements.append({"requirement_id": requirement.requiredtestid,
+                             "drug_id": requirement.drugid,
+                             "test_id": requirement.standardtestid,
+                             "pharmacist_discretion": requirement.pharmacistdiscretion,
+                             "minimum_last_test_date": str(minimum_last_test_date),
+                             "requirement_met": requirement_met})
+
+    return get_default_response({"is_authorised": authorised, "requirements": requirements})
+
+
+@app.route('/api/pickup/authorised', methods=['GET'])
+@flask_praetorian.auth_required
+def get_pickup_authorised():
+    return is_authorised(request.args.get("pickup_id"))
