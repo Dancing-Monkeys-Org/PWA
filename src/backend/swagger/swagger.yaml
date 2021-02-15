@@ -62,6 +62,34 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/pickup_id_not_found"
+  /api/pickup/status:
+    patch:
+      summary: Updates pickup status
+      operationId: updatePickupStatus
+      content:
+          application/json:
+              schema:
+                $ref: "#/definitions/update_pickups_request_body"
+
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: pickup_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/pickup_status_update_success"
+        "400":
+            schema:
+                $ref: "#/definitions/pick_up_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/pickup_id_not_found"
   /api/pickup/authorised:
     get:
       summary: Returns list of requiremetns and whether or not those requirements have been pet
@@ -202,6 +230,11 @@ paths:
                 $ref: "#/definitions/sensitivity_id_not_found"
                         
 definitions:
+    update_pickups_request_body:
+        type: "object"
+        properties:
+            type: status
+            example: "AWAITING_CONFIRMATION"
     auth:
         type: "object"
         properties:
@@ -500,6 +533,12 @@ definitions:
           description:
               type: "string"
               example: "Allergic to Penicillin"
+    pickup_status_update_success:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully updated pickup status"
     pickupList:
         type: array
         items:

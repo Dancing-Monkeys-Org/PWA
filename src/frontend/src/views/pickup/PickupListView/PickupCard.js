@@ -13,6 +13,7 @@ import {
 } from '@material-ui/core';
 import { Link } from 'react-router-dom'
 import DrugName from '../DrugName'
+import Patient from '../Patient'
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 
 const useStyles = makeStyles((theme) => ({
@@ -40,45 +41,56 @@ const PickupCard = ({ className, pickup, ...rest }) => {
     >
       <CardContent>
 
-      <Typography
-          align="left"
-          color="textPrimary"
-          gutterBottom
-          variant="h4"
-        >
-          <DrugName
-                className={classes.drugName}
-                drug_id={pickup.drug_id}
-          /> 
-        </Typography>
+      <Grid justify="space-between" container>
+        <Grid item spacing={2}>
+            <Typography
+              inline
+              noWrap
+              align="left"
+              color="textPrimary"
+              gutterBottom
+              variant="h4"
+            >
+              <DrugName
+                    className={classes.drugName}
+                    drug_id={pickup.drug_id}
+              /> 
+            </Typography>
+            
+            <Typography
+              noWrap
+              inline
+              align="left"
+              color="textPrimary"
+              gutterBottom
+              variant="h4"
+            >
+              Quantity: {pickup.drug_quantity} 
+            </Typography>
+            
+            <Typography
+              align="left"
+              color="textPrimary"
+              variant="h4"
+            >
+              Status: {pickup.pickup_status}
+            </Typography>
+        </Grid>
 
-        <Typography
-          align="left"
-          color="textPrimary"
-          gutterBottom
-          variant="h4"
-        >
-          Quantity: {pickup.drug_quantity} 
-        </Typography>
-
-        <Typography
-          align="left"
-          color="textPrimary"
-          gutterBottom
-          variant="h4"
-        >
-          {/* Patient: {pickup.patient.patient_name} */}
-        </Typography>
-
-        <Typography
-          align="left"
-          color="textPrimary"
-          variant="h4"
-        >
-          Status: {pickup.pickup_status}
-        </Typography>
-
-      </CardContent>
+        <Grid item spacing={2}>
+          <Typography
+            align="right"
+            color="textPrimary"
+            variant="h4"
+          >
+            <Patient
+                  className={classes.patient}
+                  patient_id={pickup.patient_id}
+            /> 
+          </Typography>
+        </Grid>
+      </Grid>
+    </CardContent>
 
       <Box flexGrow={1} />
       <Divider />
