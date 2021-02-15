@@ -511,6 +511,10 @@ def update_pickup_status():
 
         send_message(pickup_id, message_body)
 
+    if request.json['status'] == 'AWAITING_COLLECTION':
+        drug_name = db.session.query(drugs).filter_by(drugid=pickup.drugid).first().name
+        message_body = drug_name + " is now ready for collection."
+
     pickup.pickupstatus = request.json['status']
     db.session.commit()
     return get_default_response({"message": "Successfully updated pickup status"})
