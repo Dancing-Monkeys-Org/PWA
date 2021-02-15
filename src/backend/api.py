@@ -747,8 +747,7 @@ def send_message(pickup_id, message_body):
         contact_details = db.session.query(contactdetails).filter_by(
             contactdetailid=query.first().contactdetailid).first()
     except Exception:
-        get_default_response({"message": "An error occurred when trying to fetch patient contact details"},
-                             404)
+        get_default_response({"message": "An error occurred when trying to fetch patient contact details"}), 400
 
     client = Client(account_sid, auth_token)
 
@@ -759,8 +758,8 @@ def send_message(pickup_id, message_body):
             to=contact_details.phonenumber
         )
     except Exception:
-        return get_default_response({"message": "An error occurred when trying to send the message to the patient"},
-                                    400)
+        return get_default_response({"message": "An error occurred when trying to send the message to the patient"}),\
+               400
 
     return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
                                  "message": message_body})
