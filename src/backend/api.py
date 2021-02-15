@@ -612,7 +612,7 @@ def request_bloodwork():
     newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
     db.session.add(newRecord)
     db.session.commit()
-    return get_default_response()
+    return get_default_response({"message": "Successfully requested bloodwork"})
     # TODO send email to GP
 
 
@@ -668,3 +668,19 @@ def is_authorised(pickup_id):
 @flask_praetorian.auth_required
 def get_pickup_authorised():
     return is_authorised(request.args.get("pickup_id"))
+
+
+@app.route('/api/pickup/add', methods=['POST'])
+@flask_praetorian.auth_required
+def add_pickup():
+    try:
+        newPickup = medicalpickups(patientid = request.args.get("patient_id"),
+            drugid = request.args.get("drug_id"), drugquantity = request.args.get("drug_quantity"),
+            scheduleddate = request.args.get("scheduled_date"), reviewdate = request.args.get("review_date"),
+            isauthorised = False, pickupstatus = "AWAITING_PHARMACIST_AUTHORISATION")
+        db.session.add(newPickup)
+        db.session.commit()
+        return get_default_response({"message": "Successfully created pickup"})
+    except:
+        return get_default_response({"message": "Parameter required",
+                                     "status_code": 400}), 400
