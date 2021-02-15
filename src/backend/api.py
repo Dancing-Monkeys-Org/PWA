@@ -373,7 +373,7 @@ def generate_pickups_from_repeat_prescriptions():
 
 def generate_pickup_from_repeat_prescription(repeat_prescription):
     pickup_date = repeat_prescription.medicationstartdate
-    print(repeat_prescription.drugid)
+
     # Calculate when prescription ends
     if repeat_prescription.maximumissues is None:
         end_date = repeat_prescription.reviewdate
@@ -386,6 +386,7 @@ def generate_pickup_from_repeat_prescription(repeat_prescription):
 
         end_date = min(issue_end_date, repeat_prescription.reviewdate)
 
+    # Generates individual pickups
     while pickup_date < end_date:
         # Create new pickup
         pickup = medicalpickups(
@@ -397,10 +398,12 @@ def generate_pickup_from_repeat_prescription(repeat_prescription):
             isauthorised=True,
             pickupstatus="AWAITING_PHARMACIST_AUTHORISATION"
         )
-        print(pickup_date)
-        db.session.add(pickup)
-        pickup_date = pickup_date + datetime.timedelta(days=repeat_prescription.issuefrequency)
 
+        db.session.add(pickup)
+
+        # Increments pickup date
+        pickup_date = pickup_date + datetime.timedelta(days=repeat_prescription.issuefrequency)
+    
     repeat_prescription.pickupcreated = 1
     db.session.commit()
 
