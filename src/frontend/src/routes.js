@@ -7,6 +7,7 @@ import LoginView from './views/auth/LoginView';
 import NotFoundView from './views/errors/NotFoundView';
 import PatientListView from './views/patient/PatientListView';
 import PickupListView from './views/pickup/PickupListView';
+import PickupView from './views/pickup/PickupView';
 import isLoggedIn from './utils/isLoggedIn';
 
 const routes = () => {
