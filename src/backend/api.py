@@ -655,14 +655,14 @@ def get_sensitivity():
     return get_default_response(return_value)
 
 
-def send_email(email_address, message):
+def send_email(email_address, message, subject):
     try:
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
         server.login(REQUEST_EMAIL_ADDRESS, REQUEST_PASSWORD)
         server.sendmail(
             "pharmacyaad@gmail.com",
             email_address,
-            message)
+            "Subject: " + subject + "\n\n" + message)
         server.quit()
     except Exception:
         pass
@@ -698,7 +698,7 @@ def request_bloodwork():
                "sex: " + patientRecord.sex + "\n" +
                "age: " + str(patientRecord.age) + "\n\n\n" +
                "Pharmacist notes:\n"
-               + request.args.get("message"))
+               + request.args.get("message"), "New test request")
 
     # newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
     # db.session.add(newRecord)
