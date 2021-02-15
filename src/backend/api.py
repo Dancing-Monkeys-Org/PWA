@@ -223,25 +223,6 @@ class patienthistory(db.Model):
     def identity(self):
         return self.patienthistoryid
 
-class testrequests(db.Model):
-    testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    daterequested = db.Column(db.Date())
-    standardtestid = db.Column(db.String(36))
-    patientid = db.Column(db.String(36))
-    gpid = db.Column(db.String(36))
-
-    @classmethod
-    def lookup(cls, testrequestid):
-        return cls.query.filter_by(testrequestid=testrequestid).one_or_none()
-
-    @classmethod
-    def identify(cls, testrequestid):
-        return cls.query.get(testrequestid)
-
-    @property
-    def identity(self):
-        return self.testrequestid
-
 
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
@@ -262,6 +243,28 @@ class testrequests(db.Model):
     def identity(self):
         return self.testrequestid
 
+    class repeatprescription(db.Model):
+        repeatprescriptionid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+        drugid = db.Column(db.String(36))
+        patientid = db.Column(db.String(36))
+        drugquantity = db.Column(db.Integer())
+        medicationstartdate = db.Column(db.Date())
+        reviewdate = db.Column(db.Date())
+        maximumissues = db.Column(db.Integer())
+        issuefrequency = db.Column(db.Integer())
+        pickupcreated = db.Column(db.Boolean())
+
+        @classmethod
+        def lookup(cls, repeatprescriptionid):
+            return cls.query.filter_by(pickupid=repeatprescriptionid).one_or_none()
+
+        @classmethod
+        def identify(cls, repeatprescriptionid):
+            return cls.query.get(repeatprescriptionid)
+
+        @property
+        def identity(self):
+            return self.repeatprescriptionid
 
 def init():
     # Initialize the flask-praetorian instance for the app
@@ -594,6 +597,7 @@ def get_sensitivity():
     }
 
     return get_default_response(return_value)
+
 
 @app.route('/api/bloodwork/request', methods=['POST'])
 @flask_praetorian.auth_required
