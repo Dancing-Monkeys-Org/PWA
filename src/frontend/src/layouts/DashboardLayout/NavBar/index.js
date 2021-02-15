@@ -30,16 +30,6 @@ const user = {
 
 const items = [
   {
-    href: '/app/dashboard',
-    icon: BarChartIcon,
-    title: 'Dashboard'
-  },
-  {
-    href: '/app/patients',
-    icon: UsersIcon,
-    title: 'Patients'
-  },
-  {
     href: '/app/pickups',
     icon: ShoppingBagIcon,
     title: 'Pick Ups'
@@ -79,23 +69,6 @@ const NavBar = ({ onMobileClose, openMobile }) => {
       display="flex"
       flexDirection="column"
     >
-      <Box
-        alignItems="center"
-        display="flex"
-        flexDirection="column"
-        p={2}
-      >
-
-        <Typography
-          className={classes.name}
-          color="textPrimary"
-          variant="h5"
-        >
-          {user.name}
-        </Typography>
-        
-      </Box>
-      <Divider />
       <Box p={2}>
         <List>
           {items.map((item) => (
