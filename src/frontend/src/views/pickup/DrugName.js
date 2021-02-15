@@ -18,7 +18,7 @@ const DrugName = ({ className, drug_id, ...rest }) => {
             .then(data => {
                 updateDrug(data);
             });
-      }, []);
+      }, [drug_id]);
 
     return (
         <h4>{drug.name}</h4>
