@@ -14,6 +14,8 @@ import {
 } from '@material-ui/core';
 import Page from 'components/Page';
 import isAuthenticated from '../../utils/isAuthenticated';
+import isLoggedIn from '../../utils/isLoggedIn';
+import { values } from 'lodash';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,7 +44,7 @@ const LoginView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
-              username: 'admin',
+              username: '',
               password: 'MasterMonkey'
             }}
             validationSchema={Yup.object().shape({
@@ -50,7 +52,7 @@ const LoginView = () => {
               password: Yup.string().max(255).required('Password is required')
             })}
             onSubmit={() => {
-              navigate('/app/pickups', { replace: true });
+              isLoggedIn() ? navigate('/app/pickups', { replace: true }) : window.location.reload(false);
             }}
           >
             {({
