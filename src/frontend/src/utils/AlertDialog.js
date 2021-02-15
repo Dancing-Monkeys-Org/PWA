@@ -13,10 +13,6 @@ export default function AlertDialog({title, message}) {
     setOpen(false);
   };
 
-  React.useEffect(function effectFunction() { 
-    setOpen(true);
-  });
-
   return (
     <div>
       <Dialog
