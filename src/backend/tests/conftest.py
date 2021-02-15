@@ -35,4 +35,3 @@ def db(app):
     _db.session.query(api.standardtests).delete()
 
     yield _db
-
