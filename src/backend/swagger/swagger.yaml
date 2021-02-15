@@ -66,11 +66,6 @@ paths:
     patch:
       summary: Updates pickup status
       operationId: updatePickupStatus
-      content:
-          application/json:
-              schema:
-                $ref: "#/definitions/update_pickups_request_body"
-
       produces:
       - "application/json"
       parameters:
@@ -80,6 +75,13 @@ paths:
             type: string
             format: uuid
           required: true
+        - in: body
+          schema:
+            type: "object"
+            properties:
+              status:
+                type: string
+                example: "AWAITING_CONFIRMATION"
       responses:
         "200":
             schema:
@@ -159,6 +161,36 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/contact_id_not_found"
+  /api/send/sms:
+    post:
+      summary: Send message to patient from pickup id
+      operationId: SendSMS
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: pickup_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: body
+          schema:
+            type: "object"
+            properties:
+              message:
+                type: string
+                example: "Your pickup is ready for collection"
+      responses:
+        "200":
+            schema:
+                $ref: "#/definitions/pickup_status_update_success"
+        "400":
+            schema:
+                $ref: "#/definitions/pick_up_parameter_required"
+        "404":
+            schema:
+                $ref: "#/definitions/pickup_id_not_found"
   /api/gp:
     get:
       summary: Returns GP with provided GP ID
@@ -230,11 +262,6 @@ paths:
                 $ref: "#/definitions/sensitivity_id_not_found"
                         
 definitions:
-    update_pickups_request_body:
-        type: "object"
-        properties:
-            type: status
-            example: "AWAITING_CONFIRMATION"
     auth:
         type: "object"
         properties:
