@@ -700,11 +700,10 @@ def request_bloodwork():
                "Pharmacist notes:\n"
                + request.args.get("message"), "New test request")
 
-    # newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
-    # db.session.add(newRecord)
-    # db.session.commit()
+    newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
+    db.session.add(newRecord)
+    db.session.commit()
     return get_default_response()
-    # TODO send email to GP
 
 
 def is_authorised(pickup_id):
