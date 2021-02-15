@@ -225,6 +225,7 @@ class patienthistory(db.Model):
         return self.patienthistoryid
 
 
+
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     daterequested = db.Column(db.Date())
@@ -243,6 +244,30 @@ class testrequests(db.Model):
     @property
     def identity(self):
         return self.testrequestid
+
+
+class repeatprescription(db.Model):
+    repeatprescriptionid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    drugid = db.Column(db.String(36))
+    patientid = db.Column(db.String(36))
+    drugquantity = db.Column(db.Integer())
+    medicationstartdate = db.Column(db.Date())
+    reviewdate = db.Column(db.Date())
+    maximumissues = db.Column(db.Integer())
+    issuefrequency = db.Column(db.Integer())
+    pickupcreated = db.Column(db.Integer())
+
+    @classmethod
+    def lookup(cls, repeatprescriptionid):
+        return cls.query.filter_by(pickupid=repeatprescriptionid).one_or_none()
+
+    @classmethod
+    def identify(cls, repeatprescriptionid):
+        return cls.query.get(repeatprescriptionid)
+
+    @property
+    def identity(self):
+        return self.repeatprescriptionid
 
 
 def init():
@@ -343,9 +368,55 @@ def refresh():
     return ret, 200
 
 
+def generate_pickups_from_repeat_prescriptions():
+    query = db.session.query(repeatprescription).filter_by(pickupcreated=0)
+
+    if query.count() > 0:
+        for repeat_prescription in query:
+            generate_pickup_from_repeat_prescription(repeat_prescription)
+
+
+def generate_pickup_from_repeat_prescription(repeat_prescription):
+    pickup_date = repeat_prescription.medicationstartdate
+
+    # Calculate when prescription ends
+    if repeat_prescription.maximumissues is None:
+        end_date = repeat_prescription.reviewdate
+    elif repeat_prescription.medicationstartdate is None:
+        end_date = pickup_date + datetime.timedelta(
+            days=(repeat_prescription.maximumissues * repeat_prescription.issuefrequency))
+    else:
+        issue_end_date = pickup_date + datetime.timedelta(
+            days=(repeat_prescription.maximumissues * repeat_prescription.issuefrequency))
+
+        end_date = min(issue_end_date, repeat_prescription.reviewdate)
+
+    # Generates individual pickups
+    while pickup_date < end_date:
+        # Create new pickup
+        pickup = medicalpickups(
+            patientid=repeat_prescription.patientid,
+            drugid=repeat_prescription.drugid,
+            drugquantity=repeat_prescription.drugquantity,
+            scheduleddate=pickup_date,
+            reviewdate=end_date,
+            isauthorised=True,
+            pickupstatus="AWAITING_PHARMACIST_AUTHORISATION"
+        )
+
+        db.session.add(pickup)
+
+        # Increments pickup date
+        pickup_date = pickup_date + datetime.timedelta(days=repeat_prescription.issuefrequency)
+    
+    repeat_prescription.pickupcreated = 1
+    db.session.commit()
+
+
 @app.route('/api/pickups', methods=['GET'])
 @flask_praetorian.auth_required
 def get_pickups():
+    generate_pickups_from_repeat_prescriptions()
     arr = []
     with app.app_context():
         for instance in db.session.query(medicalpickups):
@@ -579,6 +650,7 @@ def get_sensitivity():
     }
 
     return get_default_response(return_value)
+
 
 @app.route('/api/bloodwork/request', methods=['POST'])
 @flask_praetorian.auth_required
