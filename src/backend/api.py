@@ -467,10 +467,6 @@ def update_pickup_status():
                            "AWAITING_COLLECTION",
                            "COLLECTED"]
 
-    if flask_praetorian.current_user().role != "pharmacist":
-        return get_default_response({"message": "Pharmacist role required to update pickup status",
-                                     "status_code": 401}), 401
-
     if request.args.get("pickup_id") is None:
         return get_default_response({"message": "Parameter required: pickup_id",
                                      "status_code": 400}), 400
@@ -492,6 +488,12 @@ def update_pickup_status():
 
     query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
     pickup = query.first()
+
+    if flask_praetorian.current_user().role != "pharmacist":
+        if pickup.pickupstatus != "AWAITING_ASSEMBLY" or request.json['status'] != "AWAITING_COLLECTION":
+            return get_default_response({"message": "Pharmacist role required to update pickup status",
+                                         "status_code": 401}), 401
+
     if query.count() < 1:
         return get_default_response({"message": "No pickup with that ID could be found",
                                      "status_code": 404}), 404
