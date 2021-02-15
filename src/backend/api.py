@@ -115,16 +115,16 @@ class standardtests(db.Model):
     testname = db.Column(db.String(255))
 
     @classmethod
-    def lookup(cls, testname):
-        return cls.query.filter_by(testname=testname).one_or_none()
+    def lookup(cls, standardtestid):
+        return cls.query.filter_by(standardtestid=standardtestid).one_or_none()
 
     @classmethod
-    def identify(cls, testname):
-        return cls.query.get(testname)
+    def identify(cls, standardtestid):
+        return cls.query.get(standardtestid)
 
     @property
     def identity(self):
-        return self.testname
+        return self.standardtestid
 
 
 class patients(db.Model):
@@ -656,13 +656,16 @@ def get_sensitivity():
 
 
 def send_email(email_address, message):
-    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    server.login(REQUEST_EMAIL_ADDRESS, REQUEST_PASSWORD)
-    server.sendmail(
-        "pharmacyaad@gmail.com",
-        email_address,
-        message)
-    server.quit()
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(REQUEST_EMAIL_ADDRESS, REQUEST_PASSWORD)
+        server.sendmail(
+            "pharmacyaad@gmail.com",
+            email_address,
+            message)
+        server.quit()
+    except Exception:
+        pass
 
 
 @app.route('/api/bloodwork/request', methods=['POST'])
@@ -684,8 +687,10 @@ def request_bloodwork():
     gp_record = gps.lookup(patientRecord.gpid)
     gp_contact = contactdetails.lookup(gp_record.contactdetailid)
 
+    test_name = standardtests.lookup(request.args.get("standard_test_id")).testname
+
     send_email(gp_contact.emailaddress,
-               "This is a formal request for a blood test\n" + request.args.get("message"))
+               "This is a formal request for " + test_name + "\n\n" + request.args.get("message"))
 
     # newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
     # db.session.add(newRecord)
