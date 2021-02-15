@@ -11,6 +11,7 @@ import os
 import uuid
 import datetime
 from twilio.rest import Client
+import smtplib
 
 
 statuses = ["unauthorised", "authorised"]
@@ -155,16 +156,16 @@ class gps(db.Model):
     contactdetailid = db.Column(db.String(36))
 
     @classmethod
-    def lookup(cls, testid):
-        return cls.query.filter_by(testid=testid).one_or_none()
+    def lookup(cls, gpid):
+        return cls.query.filter_by(gpid=gpid).one_or_none()
 
     @classmethod
-    def identify(cls, testid):
-        return cls.query.get(testid)
+    def identify(cls, gpid):
+        return cls.query.get(gpid)
 
     @property
     def identity(self):
-        return self.testid
+        return self.gpid
 
 
 class sensitivities(db.Model):
@@ -313,6 +314,8 @@ DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 FROM_NUMBER = os.environ['TWILIO_FROM_NUMBER']
+REQUEST_EMAIL_ADDRESS = os.environ['REQUEST_EMAIL_ADDRESS']
+REQUEST_PASSWORD = os.environ['REQUEST_PASSWORD']
 init()
 
 
@@ -652,6 +655,16 @@ def get_sensitivity():
     return get_default_response(return_value)
 
 
+def send_email(email_address, message):
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.login(REQUEST_EMAIL_ADDRESS, REQUEST_PASSWORD)
+    server.sendmail(
+        "pharmacyaad@gmail.com",
+        email_address,
+        message)
+    server.quit()
+
+
 @app.route('/api/bloodwork/request', methods=['POST'])
 @flask_praetorian.auth_required
 def request_bloodwork():
@@ -664,11 +677,19 @@ def request_bloodwork():
     if request.args.get("message") is None:
         return get_default_response({"message": "Parameter required: message",
                                      "status_code": 400}), 400
+
     patientRecord = patients.lookup(request.args.get("patient_id"))
     patientGp = patientRecord.gpid
-    newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
-    db.session.add(newRecord)
-    db.session.commit()
+
+    gp_record = gps.lookup(patientRecord.gpid)
+    gp_contact = contactdetails.lookup(gp_record.contactdetailid)
+
+    send_email(gp_contact.emailaddress,
+               "This is a formal request for a blood test\n" + request.args.get("message"))
+
+    # newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
+    # db.session.add(newRecord)
+    # db.session.commit()
     return get_default_response()
     # TODO send email to GP
 
