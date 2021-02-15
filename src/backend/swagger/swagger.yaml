@@ -200,6 +200,43 @@ paths:
         "404":
             schema:
                 $ref: "#/definitions/sensitivity_id_not_found"
+  /api/pickup/add:
+    get:
+      summary: Creates a new pickup
+      operationId: addPickup
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: patient_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          name: drug_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          name: drug_quantity
+          schema:
+            type: int
+          required: true
+          name: scheduled_date
+          schema:
+            type: date
+            format: yyyy-mm-dd
+          required: true
+          name: review_date
+          schema:
+            type: date
+            format: yyyy-mm-dd
+          required: true
+      responses:
+        "400":
+            schema:
+                $ref: "#/definitions/addpickup_parameter_required"
+
                         
 definitions:
     auth:
