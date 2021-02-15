@@ -677,13 +677,14 @@ def send_pickup_alert():
 
     client = Client(account_sid, auth_token)
 
-    message = client.messages.create(
-        body=message_body,
-        from_=FROM_NUMBER,
-        to=contact_details.phonenumber
-        )
-
-    # return get_default_response(message)
+    try:
+        message = client.messages.create(
+            body=message_body,
+            from_=FROM_NUMBER,
+            to=contact_details.phonenumber
+            )
+    except Exception:
+        return get_default_response({"message": "An error occurred when trying to send the message to the patient"})
 
     return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
                                  "message": message_body})
