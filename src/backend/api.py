@@ -222,26 +222,7 @@ class patienthistory(db.Model):
     @property
     def identity(self):
         return self.patienthistoryid
-
-class testrequests(db.Model):
-    testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
-    daterequested = db.Column(db.Date())
-    standardtestid = db.Column(db.String(36))
-    patientid = db.Column(db.String(36))
-    gpid = db.Column(db.String(36))
-
-    @classmethod
-    def lookup(cls, testrequestid):
-        return cls.query.filter_by(testrequestid=testrequestid).one_or_none()
-
-    @classmethod
-    def identify(cls, testrequestid):
-        return cls.query.get(testrequestid)
-
-    @property
-    def identity(self):
-        return self.testrequestid
-
+        
 
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
