@@ -266,6 +266,7 @@ class testrequests(db.Model):
         def identity(self):
             return self.repeatprescriptionid
 
+
 def init():
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, Users)
@@ -360,6 +361,32 @@ def refresh():
     ret = {'access_token': new_token}
     return ret, 200
 
+
+def generate_pickups_from_repeat_prescriptions():
+    query = db.session.query(repeatprescription).filter_by(pickupcreated=False)
+
+    if query.count > 0:
+        for repeat_prescription in query:
+            generate_pickup_from_repeat_prescription(repeat_prescription)
+
+
+def generate_pickup_from_repeat_prescription(repeat_prescription):
+    # TODO add code to generate prescriptions
+
+    pickup_date = repeat_prescription.medicationstartdate
+
+    if repeat_prescription.maximumissues is None:
+        end_date = repeat_prescription.reviewdate
+    elif repeat_prescription.medicationstartdate is None:
+        end_date = pickup_date + datetime.datetime(
+            days=(repeat_prescription.maximumissues * repeat_prescription.issuefrequency))
+    else:
+        issue_end_date = pickup_date + datetime.datetime(
+            days=(repeat_prescription.maximumissues * repeat_prescription.issuefrequency))
+        min(issue_end_date, repeat_prescription.medicationstartdate)
+
+
+    # repeat_prescription.pickupcreated = True
 
 @app.route('/api/pickups', methods=['GET'])
 @flask_praetorian.auth_required
