@@ -13,6 +13,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Page from 'components/Page';
 import Patient from '../Patient'
 import DrugName from '../DrugName';
+import AlertDialog from 'utils/AlertDialog';
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
@@ -55,10 +56,29 @@ const PickupView = () => {
     }, []);
 
     const handleChange = (event) => {
-      updatePickup({
-        ...pickup, 
-        pickup_status: event.target.value
-      });
+      let res = {}
+
+      fetch('https://dancingmonkeys.tech/api/pickup/status?pickup_id=' + id.toString(), {
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: event.target.value
+        }),
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          "Content-type": "application/json; charset=UTF-8"
+        }
+        })
+        .then(response => response.json())
+        .then(json => res = json)
+
+        if(res.status !== 200){
+            return <AlertDialog title="Warning" message={res.message} />
+        }else{
+          updatePickup({
+            ...pickup, 
+            pickup_status: event.target.value
+          });
+        }
     };
 
     return (
