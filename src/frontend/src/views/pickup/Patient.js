@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import ContactInfo from './contactInfo';
+import GpInfo from './gpInfo';
 
 const Patient = ({ className, patient_id, ...rest }) => {
     const [patient, updatePatient] = useState([]);
@@ -16,7 +18,7 @@ const Patient = ({ className, patient_id, ...rest }) => {
             })
             .then(response => response.json())
             .then(data => {
-                updatePatient(data);
+              updatePatient(data);
             });
       }, [patient_id]);
 
@@ -25,6 +27,12 @@ const Patient = ({ className, patient_id, ...rest }) => {
             <h4>{patient.forename} {patient.surname}</h4>
             <h4>{patient.sex}</h4>
             <h4>{patient.age} Years Old</h4>
+            <ContactInfo
+              contact_id={patient.contact_id}
+            />
+            <GpInfo
+              gp_id={patient.gp_id}
+            />
         </div>
     );
   };

@@ -39,7 +39,7 @@ const PickupView = () => {
             })
             .then(response => response.json())
             .then(data => {
-            updatePickup(data);
+              updatePickup(data);
             });
     }, []);
 
