@@ -662,6 +662,10 @@ def send_pickup_alert():
         return get_default_response({"message": "Parameter required: pickup_id",
                                      "status_code": 400}), 400
 
+    if "message" not in request.json:
+        return get_default_response({"message": "Field required in JSON body: message",
+                                     "status_code": 400}), 400
+
     pickup_id = request.args.get("pickup_id")
     message_body = request.json['message']
 
@@ -670,10 +674,14 @@ def send_pickup_alert():
     if query.count() < 1:
         return get_default_response({"message": "No pick up with that ID could be found",
                                      "status_code": 404}), 404
+    try:
 
-    query = db.session.query(patients).filter_by(patientid=query.first().patientid)
+        query = db.session.query(patients).filter_by(patientid=query.first().patientid)
 
-    contact_details = db.session.query(contactdetails).filter_by(contactdetailid=query.first().contactdetailid).first()
+        contact_details = db.session.query(contactdetails).filter_by(contactdetailid=query.first().contactdetailid).first()
+    except Exception:
+        get_default_response({"message": "An error occurred when trying to fetch patient contact details"},
+                             404)
 
     client = Client(account_sid, auth_token)
 
@@ -684,7 +692,8 @@ def send_pickup_alert():
             to=contact_details.phonenumber
             )
     except Exception:
-        return get_default_response({"message": "An error occurred when trying to send the message to the patient"})
+        return get_default_response({"message": "An error occurred when trying to send the message to the patient"},
+                                    400)
 
     return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
                                  "message": message_body})
