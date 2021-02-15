@@ -10,6 +10,7 @@ import json
 import os
 import uuid
 import datetime
+from twilio.rest import Client
 
 
 statuses = ["unauthorised", "authorised"]
@@ -224,6 +225,7 @@ class patienthistory(db.Model):
         return self.patienthistoryid
 
 
+
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     daterequested = db.Column(db.Date())
@@ -308,6 +310,9 @@ DB_NAME = os.environ.get('DB_NAME')
 DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
 DEFAULT_ACCOUNT_PASSWORD = os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
 DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
+FROM_NUMBER = os.environ['TWILIO_FROM_NUMBER']
 init()
 
 
@@ -720,3 +725,47 @@ def is_authorised(pickup_id):
 @flask_praetorian.auth_required
 def get_pickup_authorised():
     return is_authorised(request.args.get("pickup_id"))
+
+
+@app.route('/api/send/sms', methods=['POST'])
+@flask_praetorian.auth_required
+def send_pickup_alert():
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    if "message" not in request.json:
+        return get_default_response({"message": "Field required in JSON body: message",
+                                     "status_code": 400}), 400
+
+    pickup_id = request.args.get("pickup_id")
+    message_body = request.json['message']
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+    try:
+
+        query = db.session.query(patients).filter_by(patientid=query.first().patientid)
+
+        contact_details = db.session.query(contactdetails).filter_by(contactdetailid=query.first().contactdetailid).first()
+    except Exception:
+        get_default_response({"message": "An error occurred when trying to fetch patient contact details"},
+                             404)
+
+    client = Client(account_sid, auth_token)
+
+    try:
+        message = client.messages.create(
+            body=message_body,
+            from_=FROM_NUMBER,
+            to=contact_details.phonenumber
+            )
+    except Exception:
+        return get_default_response({"message": "An error occurred when trying to send the message to the patient"},
+                                    400)
+
+    return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
+                                 "message": message_body})
