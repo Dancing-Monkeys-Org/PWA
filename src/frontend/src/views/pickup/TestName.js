@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-const DrugName = ({ className, drug_id, ...rest }) => {
-    const [drug, updateDrug] = useState([]);
+const TestName = ({ className, test_id, ...rest }) => {
+    const [test, updateTest] = useState([]);
 
     const loginVal = JSON.parse(localStorage.getItem("login"));
     const token = loginVal.token;
 
     React.useEffect(function effectFunction() {
-        fetch('https://dancingmonkeys.tech/api/drug?drug_id=' + drug_id, { 
+        fetch('https://dancingmonkeys.tech/api/test?test_id=' + test_id, { 
               headers:  {
                 'Authorization': `Bearer ${token}`,
                 'Accept': '*/*'
@@ -16,18 +16,18 @@ const DrugName = ({ className, drug_id, ...rest }) => {
             })
             .then(response => response.json())
             .then(data => {
-                updateDrug(data);
+                updateTest(data);
             });
-      }, [drug_id]);
+      }, [test_id]);
 
     return (
-        <h4>{drug.name}</h4>
+        <h4>{test.name}</h4>
     );
   };
   
-  DrugName.propTypes = {
+  TestName.propTypes = {
     className: PropTypes.string,
-    drug_id: PropTypes.object.isRequired
+    test_id: PropTypes.object.isRequired
   };
   
-  export default DrugName;
+  export default TestName;
