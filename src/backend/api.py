@@ -10,6 +10,7 @@ import json
 import os
 import uuid
 import datetime
+from twilio.rest import Client
 
 
 statuses = ["unauthorised", "authorised"]
@@ -222,7 +223,6 @@ class patienthistory(db.Model):
     @property
     def identity(self):
         return self.patienthistoryid
-        
 
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
@@ -242,6 +242,30 @@ class testrequests(db.Model):
     @property
     def identity(self):
         return self.testrequestid
+
+
+class repeatprescription(db.Model):
+    repeatprescriptionid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
+    drugid = db.Column(db.String(36))
+    patientid = db.Column(db.String(36))
+    drugquantity = db.Column(db.Integer())
+    medicationstartdate = db.Column(db.Date())
+    reviewdate = db.Column(db.Date())
+    maximumissues = db.Column(db.Integer())
+    issuefrequency = db.Column(db.Integer())
+    pickupcreated = db.Column(db.Integer())
+
+    @classmethod
+    def lookup(cls, repeatprescriptionid):
+        return cls.query.filter_by(pickupid=repeatprescriptionid).one_or_none()
+
+    @classmethod
+    def identify(cls, repeatprescriptionid):
+        return cls.query.get(repeatprescriptionid)
+
+    @property
+    def identity(self):
+        return self.repeatprescriptionid
 
 
 def init():
@@ -284,6 +308,9 @@ DB_NAME = os.environ.get('DB_NAME')
 DEFAULT_ACCOUNT_USERNAME = os.environ.get('DEFAULT_ACCOUNT_USERNAME')
 DEFAULT_ACCOUNT_PASSWORD = os.environ.get('DEFAULT_ACCOUNT_PASSWORD')
 DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
+FROM_NUMBER = os.environ['TWILIO_FROM_NUMBER']
 init()
 
 
@@ -339,9 +366,55 @@ def refresh():
     return ret, 200
 
 
+def generate_pickups_from_repeat_prescriptions():
+    query = db.session.query(repeatprescription).filter_by(pickupcreated=0)
+
+    if query.count() > 0:
+        for repeat_prescription in query:
+            generate_pickup_from_repeat_prescription(repeat_prescription)
+
+
+def generate_pickup_from_repeat_prescription(repeat_prescription):
+    pickup_date = repeat_prescription.medicationstartdate
+
+    # Calculate when prescription ends
+    if repeat_prescription.maximumissues is None:
+        end_date = repeat_prescription.reviewdate
+    elif repeat_prescription.medicationstartdate is None:
+        end_date = pickup_date + datetime.timedelta(
+            days=(repeat_prescription.maximumissues * repeat_prescription.issuefrequency))
+    else:
+        issue_end_date = pickup_date + datetime.timedelta(
+            days=(repeat_prescription.maximumissues * repeat_prescription.issuefrequency))
+
+        end_date = min(issue_end_date, repeat_prescription.reviewdate)
+
+    # Generates individual pickups
+    while pickup_date < end_date:
+        # Create new pickup
+        pickup = medicalpickups(
+            patientid=repeat_prescription.patientid,
+            drugid=repeat_prescription.drugid,
+            drugquantity=repeat_prescription.drugquantity,
+            scheduleddate=pickup_date,
+            reviewdate=end_date,
+            isauthorised=True,
+            pickupstatus="AWAITING_PHARMACIST_AUTHORISATION"
+        )
+
+        db.session.add(pickup)
+
+        # Increments pickup date
+        pickup_date = pickup_date + datetime.timedelta(days=repeat_prescription.issuefrequency)
+    
+    repeat_prescription.pickupcreated = 1
+    db.session.commit()
+
+
 @app.route('/api/pickups', methods=['GET'])
 @flask_praetorian.auth_required
 def get_pickups():
+    generate_pickups_from_repeat_prescriptions()
     arr = []
     with app.app_context():
         for instance in db.session.query(medicalpickups):
@@ -576,6 +649,7 @@ def get_sensitivity():
 
     return get_default_response(return_value)
 
+
 @app.route('/api/bloodwork/request', methods=['POST'])
 @flask_praetorian.auth_required
 def request_bloodwork():
@@ -593,7 +667,7 @@ def request_bloodwork():
     newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
     db.session.add(newRecord)
     db.session.commit()
-    return get_default_response()
+    return get_default_response({"message": "Successfully requested bloodwork"})
     # TODO send email to GP
 
 
@@ -649,3 +723,61 @@ def is_authorised(pickup_id):
 @flask_praetorian.auth_required
 def get_pickup_authorised():
     return is_authorised(request.args.get("pickup_id"))
+
+
+@app.route('/api/pickup/add', methods=['POST'])
+@flask_praetorian.auth_required
+def add_pickup():
+    try:
+        newPickup = medicalpickups(patientid = request.args.get("patient_id"),
+            drugid = request.args.get("drug_id"), drugquantity = request.args.get("drug_quantity"),
+            scheduleddate = request.args.get("scheduled_date"), reviewdate = request.args.get("review_date"),
+            isauthorised = False, pickupstatus = "AWAITING_PHARMACIST_AUTHORISATION")
+        db.session.add(newPickup)
+        db.session.commit()
+        return get_default_response({"message": "Successfully created pickup"})
+    except:
+        return get_default_response({"message": "Parameter required",
+                                     "status_code": 400}), 400
+@app.route('/api/send/sms', methods=['POST'])
+@flask_praetorian.auth_required
+def send_pickup_alert():
+    if request.args.get("pickup_id") is None:
+        return get_default_response({"message": "Parameter required: pickup_id",
+                                     "status_code": 400}), 400
+
+    if "message" not in request.json:
+        return get_default_response({"message": "Field required in JSON body: message",
+                                     "status_code": 400}), 400
+
+    pickup_id = request.args.get("pickup_id")
+    message_body = request.json['message']
+
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+    try:
+
+        query = db.session.query(patients).filter_by(patientid=query.first().patientid)
+
+        contact_details = db.session.query(contactdetails).filter_by(contactdetailid=query.first().contactdetailid).first()
+    except Exception:
+        get_default_response({"message": "An error occurred when trying to fetch patient contact details"},
+                             404)
+
+    client = Client(account_sid, auth_token)
+
+    try:
+        message = client.messages.create(
+            body=message_body,
+            from_=FROM_NUMBER,
+            to=contact_details.phonenumber
+            )
+    except Exception:
+        return get_default_response({"message": "An error occurred when trying to send the message to the patient"},
+                                    400)
+
+    return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
+                                 "message": message_body})
