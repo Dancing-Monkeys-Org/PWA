@@ -55,6 +55,7 @@ def test_not_authorised(client):
 
 
 def test_invalid_role(client, db):
+    foreign_key_entries(db)
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
     res = client.patch("/api/pickup/status", headers={'Authorization': "Bearer " + token},
