@@ -11,6 +11,7 @@ import os
 import uuid
 import datetime
 from twilio.rest import Client
+import smtplib
 
 
 statuses = ["unauthorised", "authorised"]
@@ -114,16 +115,16 @@ class standardtests(db.Model):
     testname = db.Column(db.String(255))
 
     @classmethod
-    def lookup(cls, testname):
-        return cls.query.filter_by(testname=testname).one_or_none()
+    def lookup(cls, standardtestid):
+        return cls.query.filter_by(standardtestid=standardtestid).one_or_none()
 
     @classmethod
-    def identify(cls, testname):
-        return cls.query.get(testname)
+    def identify(cls, standardtestid):
+        return cls.query.get(standardtestid)
 
     @property
     def identity(self):
-        return self.testname
+        return self.standardtestid
 
 
 class patients(db.Model):
@@ -155,16 +156,16 @@ class gps(db.Model):
     contactdetailid = db.Column(db.String(36))
 
     @classmethod
-    def lookup(cls, testid):
-        return cls.query.filter_by(testid=testid).one_or_none()
+    def lookup(cls, gpid):
+        return cls.query.filter_by(gpid=gpid).one_or_none()
 
     @classmethod
-    def identify(cls, testid):
-        return cls.query.get(testid)
+    def identify(cls, gpid):
+        return cls.query.get(gpid)
 
     @property
     def identity(self):
-        return self.testid
+        return self.gpid
 
 
 class sensitivities(db.Model):
@@ -311,6 +312,8 @@ DEFAULT_ACCOUNT_ROLE = os.environ.get('DEFAULT_ACCOUNT_ROLE')
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 FROM_NUMBER = os.environ['TWILIO_FROM_NUMBER']
+REQUEST_EMAIL_ADDRESS = os.environ['REQUEST_EMAIL_ADDRESS']
+REQUEST_PASSWORD = os.environ['REQUEST_PASSWORD']
 init()
 
 
@@ -465,10 +468,6 @@ def update_pickup_status():
                            "AWAITING_COLLECTION",
                            "COLLECTED"]
 
-    if flask_praetorian.current_user().role != "pharmacist":
-        return get_default_response({"message": "Pharmacist role required to update pickup status",
-                                     "status_code": 401}), 401
-
     if request.args.get("pickup_id") is None:
         return get_default_response({"message": "Parameter required: pickup_id",
                                      "status_code": 400}), 400
@@ -490,6 +489,12 @@ def update_pickup_status():
 
     query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
     pickup = query.first()
+
+    if flask_praetorian.current_user().role != "pharmacist":
+        if pickup.pickupstatus != "AWAITING_ASSEMBLY" or request.json['status'] != "AWAITING_COLLECTION":
+            return get_default_response({"message": "Pharmacist role required to update pickup status",
+                                         "status_code": 401}), 401
+
     if query.count() < 1:
         return get_default_response({"message": "No pickup with that ID could be found",
                                      "status_code": 404}), 404
@@ -499,6 +504,19 @@ def update_pickup_status():
         if not authorised['is_authorised']:
             return get_default_response({"message": "Cannot update status as pickup has unmet requirements",
                                          "status_code": 400}), 400
+
+    if request.json['status'] == 'AWAITING_CONFIRMATION':
+        drug_name = db.session.query(drugs).filter_by(drugid=pickup.drugid).first().name
+        message_body = "Our records show that you are due to run out" \
+                       " of " + drug_name + " soon. Please contact your pharmacy to arrange pick up."
+
+        send_message(pickup_id, message_body)
+
+    if request.json['status'] == 'AWAITING_COLLECTION':
+        drug_name = db.session.query(drugs).filter_by(drugid=pickup.drugid).first().name
+        message_body = drug_name + " is now ready for collection."
+
+        send_message(pickup_id, message_body)
 
     pickup.pickupstatus = request.json['status']
     db.session.commit()
@@ -650,6 +668,19 @@ def get_sensitivity():
     return get_default_response(return_value)
 
 
+def send_email(email_address, message, subject):
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(REQUEST_EMAIL_ADDRESS, REQUEST_PASSWORD)
+        server.sendmail(
+            "pharmacyaad@gmail.com",
+            email_address,
+            "Subject: " + subject + "\n\n" + message)
+        server.quit()
+    except Exception:
+        pass
+
+
 @app.route('/api/bloodwork/request', methods=['POST'])
 @flask_praetorian.auth_required
 def request_bloodwork():
@@ -662,8 +693,26 @@ def request_bloodwork():
     if request.args.get("message") is None:
         return get_default_response({"message": "Parameter required: message",
                                      "status_code": 400}), 400
+
     patientRecord = patients.lookup(request.args.get("patient_id"))
     patientGp = patientRecord.gpid
+
+    gp_record = gps.lookup(patientRecord.gpid)
+    gp_contact = contactdetails.lookup(gp_record.contactdetailid)
+
+    test_name = standardtests.lookup(request.args.get("standard_test_id")).testname
+
+    send_email(gp_contact.emailaddress,
+               "This is a formal request for " + test_name + "\n\n"
+               + "Patient details: \n\n" +
+               "Patient ID: " + patientRecord.patientid + "\n" +
+               "forename: " + patientRecord.forename + "\n" +
+               "surname: " + patientRecord.surname + "\n" +
+               "sex: " + patientRecord.sex + "\n" +
+               "age: " + str(patientRecord.age) + "\n\n\n" +
+               "Pharmacist notes:\n"
+               + request.args.get("message"), "New test request")
+
     newRecord = testrequests(daterequested = datetime.datetime.now(), standardtestid = request.args.get("standard_test_id"), patientid = request.args.get("patient_id"), gpid = patientGp)
     db.session.add(newRecord)
     db.session.commit()
@@ -739,6 +788,38 @@ def add_pickup():
     except:
         return get_default_response({"message": "Parameter required",
                                      "status_code": 400}), 400
+
+def send_message(pickup_id, message_body):
+    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
+
+    if query.count() < 1:
+        return get_default_response({"message": "No pick up with that ID could be found",
+                                     "status_code": 404}), 404
+    try:
+
+        query = db.session.query(patients).filter_by(patientid=query.first().patientid)
+
+        contact_details = db.session.query(contactdetails).filter_by(
+            contactdetailid=query.first().contactdetailid).first()
+    except Exception:
+        get_default_response({"message": "An error occurred when trying to fetch patient contact details"}), 400
+
+    client = Client(account_sid, auth_token)
+
+    try:
+        message = client.messages.create(
+            body=message_body,
+            from_=FROM_NUMBER,
+            to=contact_details.phonenumber
+        )
+    except Exception:
+        return get_default_response({"message": "An error occurred when trying to send the message to the patient"}),\
+               400
+
+    return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
+                                 "message": message_body})
+
+
 @app.route('/api/send/sms', methods=['POST'])
 @flask_praetorian.auth_required
 def send_pickup_alert():
@@ -753,31 +834,4 @@ def send_pickup_alert():
     pickup_id = request.args.get("pickup_id")
     message_body = request.json['message']
 
-    query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
-
-    if query.count() < 1:
-        return get_default_response({"message": "No pick up with that ID could be found",
-                                     "status_code": 404}), 404
-    try:
-
-        query = db.session.query(patients).filter_by(patientid=query.first().patientid)
-
-        contact_details = db.session.query(contactdetails).filter_by(contactdetailid=query.first().contactdetailid).first()
-    except Exception:
-        get_default_response({"message": "An error occurred when trying to fetch patient contact details"},
-                             404)
-
-    client = Client(account_sid, auth_token)
-
-    try:
-        message = client.messages.create(
-            body=message_body,
-            from_=FROM_NUMBER,
-            to=contact_details.phonenumber
-            )
-    except Exception:
-        return get_default_response({"message": "An error occurred when trying to send the message to the patient"},
-                                    400)
-
-    return get_default_response({"phone": contact_details.phonenumber, "email": contact_details.emailaddress,
-                                 "message": message_body})
+    return send_message(pickup_id, message_body)
