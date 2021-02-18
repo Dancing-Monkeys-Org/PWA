@@ -35,6 +35,17 @@ paths:
       operationId: getPickups
       produces:
       - "application/json"
+      parameters:
+        - in: query
+          name: pickup_status
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: scheduled_before
+          schema:
+            type: string
+          required: true
       responses:
         "200":
             schema:
@@ -46,7 +57,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: pickup_id
           schema:
             type: string
@@ -69,7 +80,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: pickup_id
           schema:
             type: string
@@ -99,7 +110,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: pickup_id
           schema:
             type: string
@@ -122,7 +133,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: test_id
           schema:
             type: string
@@ -145,7 +156,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: contact_id
           schema:
             type: string
@@ -168,7 +179,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: pickup_id
           schema:
             type: string
@@ -198,7 +209,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: gp_id
           schema:
             type: string
@@ -221,7 +232,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: patient_id
           schema:
             type: string
@@ -244,7 +255,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-        - in: path
+        - in: query
           name: sensitivity_id
           schema:
             type: string
