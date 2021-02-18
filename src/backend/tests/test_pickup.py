@@ -61,7 +61,7 @@ def test_pickup_id_not_found(client, db):
     assert res.status_code == 404
 
 
-def test_pickup(client, db):
+def test_pickup_successfully_returned(client, db):
     foreign_key_entries(db)
 
     # Record to be extracted
