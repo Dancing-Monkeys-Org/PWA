@@ -443,8 +443,12 @@ def get_pickups():
         return get_default_response({"message": "Parameter required: scheduled_before",
                                      "status_code": 400}), 400
 
+    query = db.session.query(medicalpickups).filter\
+        (medicalpickups.pickupstatus == pickup_status,
+         medicalpickups.scheduleddate <= scheduled_before).order_by(medicalpickups.scheduleddate)
+
     with app.app_context():
-        for instance in db.session.query(medicalpickups).filter_by(pickupstatus=pickup_status):
+        for instance in query:
             arr.append({"pickup_id": instance.pickupid,
                         "patient_id": instance.patientid,
                         "drug_id": instance.drugid,
