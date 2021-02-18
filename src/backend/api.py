@@ -226,7 +226,6 @@ class patienthistory(db.Model):
         return self.patienthistoryid
 
 
-
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     daterequested = db.Column(db.Date())
@@ -419,10 +418,33 @@ def generate_pickup_from_repeat_prescription(repeat_prescription):
 @app.route('/api/pickups', methods=['GET'])
 @flask_praetorian.auth_required
 def get_pickups():
+    valid_pickup_states = ["AWAITING_PHARMACIST_AUTHORISATION",
+                           "AWAITING_CONFIRMATION",
+                           "AWAITING_ASSEMBLY",
+                           "AWAITING_COLLECTION",
+                           "COLLECTED"]
+
     generate_pickups_from_repeat_prescriptions()
     arr = []
+
+    pickup_status = request.args.get("pickup_status")
+    scheduled_before = request.args.get("scheduled_before")
+
+    if pickup_status is None:
+        return get_default_response({"message": "Parameter required: status",
+                                     "status_code": 400}), 400
+
+    if pickup_status not in valid_pickup_states:
+        return get_default_response({"message": pickup_status + " Is not a valid status. The list of valid "
+                                                                "status is " + str(valid_pickup_states),
+                                     "status_code": 400}), 400
+
+    if scheduled_before is None:
+        return get_default_response({"message": "Parameter required: scheduled_before",
+                                     "status_code": 400}), 400
+
     with app.app_context():
-        for instance in db.session.query(medicalpickups):
+        for instance in db.session.query(medicalpickups).filter_by(pickupstatus=pickup_status):
             arr.append({"pickup_id": instance.pickupid,
                         "patient_id": instance.patientid,
                         "drug_id": instance.drugid,
