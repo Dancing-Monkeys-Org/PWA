@@ -5,7 +5,6 @@ from flask import request
 import flask
 import flask_sqlalchemy
 import flask_praetorian
-# import flask_cors
 import json
 import os
 import uuid
@@ -16,9 +15,14 @@ import smtplib
 
 statuses = ["unauthorised", "authorised"]
 
+VALID_PICKUP_STATES = ["AWAITING_PHARMACIST_AUTHORISATION",
+                           "AWAITING_CONFIRMATION",
+                           "AWAITING_ASSEMBLY",
+                           "AWAITING_COLLECTION",
+                           "COLLECTED"]
+
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
-# cors = flask_cors.CORS()
 
 
 class Users(db.Model):
@@ -274,14 +278,10 @@ def init():
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, Users)
 
-    # Initialize a local database for the example
     app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://" + DB_USERNAME + ":" + DB_PASSWORD + "@" + DB_URL + "/" + DB_NAME
     db.init_app(app)
 
-    # Initializes CORS so that the api_tool can talk to the example app
-    # cors.init_app(app)
-
-    # Add users for the example
+    # Add a default user
     with app.app_context():
         db.create_all()
         if db.session.query(Users).filter_by(username=DEFAULT_ACCOUNT_USERNAME).count() < 1:
@@ -363,7 +363,6 @@ def test_auth():
 
 @app.route('/api/refresh', methods=['POST'])
 def refresh():
-    print("refresh request")
     old_token = flask.request.get_data()
     new_token = guard.refresh_jwt_token(old_token)
     ret = {'access_token': new_token}
@@ -371,6 +370,7 @@ def refresh():
 
 
 def generate_pickups_from_repeat_prescriptions():
+    # Checks for repeat prescriptions that have not been converted to medical pickups
     query = db.session.query(repeatprescription).filter_by(pickupcreated=0)
 
     if query.count() > 0:
@@ -418,12 +418,6 @@ def generate_pickup_from_repeat_prescription(repeat_prescription):
 @app.route('/api/pickups', methods=['GET'])
 @flask_praetorian.auth_required
 def get_pickups():
-    valid_pickup_states = ["AWAITING_PHARMACIST_AUTHORISATION",
-                           "AWAITING_CONFIRMATION",
-                           "AWAITING_ASSEMBLY",
-                           "AWAITING_COLLECTION",
-                           "COLLECTED"]
-
     generate_pickups_from_repeat_prescriptions()
     arr = []
 
@@ -434,30 +428,29 @@ def get_pickups():
         return get_default_response({"message": "Parameter required: status",
                                      "status_code": 400}), 400
 
-    if pickup_status not in valid_pickup_states:
+    if pickup_status not in VALID_PICKUP_STATES:
         return get_default_response({"message": pickup_status + " Is not a valid status. The list of valid "
-                                                                "status is " + str(valid_pickup_states),
+                                                                "status is " + str(VALID_PICKUP_STATES),
                                      "status_code": 400}), 400
 
     if scheduled_before is None:
         return get_default_response({"message": "Parameter required: scheduled_before",
                                      "status_code": 400}), 400
 
-    query = db.session.query(medicalpickups).filter\
-        (medicalpickups.pickupstatus == pickup_status,
-         medicalpickups.scheduleddate <= scheduled_before).order_by(medicalpickups.scheduleddate)
+    query = db.session.query(medicalpickups).filter(
+        medicalpickups.pickupstatus == pickup_status,
+        medicalpickups.scheduleddate <= scheduled_before).order_by(medicalpickups.scheduleddate)
 
-    with app.app_context():
-        for instance in query:
-            arr.append({"pickup_id": instance.pickupid,
-                        "patient_id": instance.patientid,
-                        "drug_id": instance.drugid,
-                        "drug_quantity": instance.drugquantity,
-                        "scheduled_date": str(instance.scheduleddate),
-                        "review_date": str(instance.reviewdate),
-                        "is_authorised": statuses[instance.isauthorised],
-                        "pickup_status": instance.pickupstatus})
-        return get_default_response(arr)
+    for instance in query:
+        arr.append({"pickup_id": instance.pickupid,
+                    "patient_id": instance.patientid,
+                    "drug_id": instance.drugid,
+                    "drug_quantity": instance.drugquantity,
+                    "scheduled_date": str(instance.scheduleddate),
+                    "review_date": str(instance.reviewdate),
+                    "is_authorised": statuses[instance.isauthorised],
+                    "pickup_status": instance.pickupstatus})
+    return get_default_response(arr)
 
 
 @app.route('/api/pickup', methods=['GET'])
@@ -490,12 +483,6 @@ def get_pickup():
 @app.route('/api/pickup/status', methods=['PATCH'])
 @flask_praetorian.auth_required
 def update_pickup_status():
-    valid_pickup_states = ["AWAITING_PHARMACIST_AUTHORISATION",
-                           "AWAITING_CONFIRMATION",
-                           "AWAITING_ASSEMBLY",
-                           "AWAITING_COLLECTION",
-                           "COLLECTED"]
-
     if request.args.get("pickup_id") is None:
         return get_default_response({"message": "Parameter required: pickup_id",
                                      "status_code": 400}), 400
@@ -510,9 +497,9 @@ def update_pickup_status():
         return get_default_response({"message": "Field required in JSON body: status",
                                      "status_code": 400}), 400
 
-    if request.json['status'] not in valid_pickup_states:
+    if request.json['status'] not in VALID_PICKUP_STATES:
         return get_default_response({"message": request.json['status'] + " Is not a valid status. This list of valid "
-                                                                         "status are " + str(valid_pickup_states),
+                                                                         "status are " + str(VALID_PICKUP_STATES),
                                      "status_code": 400}), 400
 
     query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
@@ -555,8 +542,9 @@ def update_pickup_status():
 @flask_praetorian.auth_required
 def get_drug():
     if request.args.get("drug_id") is None:
-         return get_default_response({"message": "Parameter required: drug_id",
+        return get_default_response({"message": "Parameter required: drug_id",
                                      "status_code": 400}), 400
+    
     query = db.session.query(drugs).filter_by(drugid=request.args.get("drug_id"))
     if query.count() < 1:
         return get_default_response({"message": "No drug with that ID could be found",
