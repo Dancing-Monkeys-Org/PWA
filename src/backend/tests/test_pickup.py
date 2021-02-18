@@ -46,20 +46,7 @@ def test_no_pickups_to_return(client, db):
 
 def test_pickup_id_not_found(client, db):
     foreign_key_entries(db)
-    # Records to accommodate for foreign key constraints
-    # db.session.execute(
-    #     'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
-    #     ' "addressline31", "addressline41", "ABC DEF")')
-    #
-    # db.session.execute('INSERT INTO gps () VALUES ("gpsUUID", "Gp1", "contactDetailUUID")')
-    # db.session.execute(
-    #     'INSERT INTO sensitivities() VALUES ("sensitivityUUID", "Water allergy", "What it says on the tin")')
-    #
-    # db.session.execute(
-    #     'INSERT INTO patients() VALUES ("patientUUID", "gpsUUID", "sensitivityUUID", "Ben", "Jackson", "F",'
-    #     ' 12, "contactDetailUUID")')
-    # db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
-    # db.session.execute('INSERT INTO standardtests () VALUES ("testUUID", "INCOMPLETE")')
+
     # Record that should not be returned
     db.session.execute(
         'INSERT INTO medicalpickups () VALUES ("medicalPickupUUID",'
@@ -76,21 +63,8 @@ def test_pickup_id_not_found(client, db):
 
 def test_pickup(client, db):
     foreign_key_entries(db)
-    # Records to accommodate for foreign key constraints
-    # db.session.execute(
-    #     'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
-    #     ' "addressline31", "addressline41", "ABC DEF")')
-    #
-    # db.session.execute('INSERT INTO gps () VALUES ("gpsUUID", "Gp1", "contactDetailUUID")')
-    # db.session.execute(
-    #     'INSERT INTO sensitivities() VALUES ("sensitivityUUID", "Water allergy", "What it says on the tin")')
-    #
-    # db.session.execute(
-    #     'INSERT INTO patients() VALUES ("patientUUID", "gpsUUID", "sensitivityUUID", "Ben", "Jackson", "F",'
-    #     ' 12, "contactDetailUUID")')
-    # db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
-    # db.session.execute('INSERT INTO standardtests () VALUES ("testUUID", "Blood test 1")')
-    # # Record to be extracted
+
+    # Record to be extracted
     db.session.execute(
         'INSERT INTO medicalpickups () VALUES ("medicalPickupUUID",'
         ' "patientUUID", "drugUUID", 1, "2021-02-01", "2021-02-01", 1, "AWAITING_PICKUP")')
