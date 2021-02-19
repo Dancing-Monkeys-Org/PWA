@@ -5,7 +5,6 @@ from flask import request
 import flask
 import flask_sqlalchemy
 import flask_praetorian
-# import flask_cors
 import json
 import os
 import uuid
@@ -13,12 +12,32 @@ import datetime
 from twilio.rest import Client
 import smtplib
 
+""" 
+Title: Setting up & Deploying JWT based auth using Flask & React
+Author: Yasoob Khalid
+Date: 12.01.2021
+Availability: 
+https://yasoob.me/posts/how-to-setup-and-deploy-jwt-auth-using-react-and-flask/
+comment:
+This tutorial was used to implement the token based login system.
+
+We chose to use a tutorial for this rather than write it from 
+scratch as we believe this will greatly improve the security of the system.
+
+No members of the team are security experts or have had experience with writing a backend authentication systems so 
+writing this from scratch would likely make the system vulnerable
+"""
 
 statuses = ["unauthorised", "authorised"]
 
+VALID_PICKUP_STATES = ["AWAITING_PHARMACIST_AUTHORISATION",
+                           "AWAITING_CONFIRMATION",
+                           "AWAITING_ASSEMBLY",
+                           "AWAITING_COLLECTION",
+                           "COLLECTED"]
+
 db = flask_sqlalchemy.SQLAlchemy()
 guard = flask_praetorian.Praetorian()
-# cors = flask_cors.CORS()
 
 
 class Users(db.Model):
@@ -226,7 +245,6 @@ class patienthistory(db.Model):
         return self.patienthistoryid
 
 
-
 class testrequests(db.Model):
     testrequestid = db.Column(db.String(36), primary_key=True, default=uuid.uuid4)
     daterequested = db.Column(db.Date())
@@ -275,14 +293,10 @@ def init():
     # Initialize the flask-praetorian instance for the app
     guard.init_app(app, Users)
 
-    # Initialize a local database for the example
     app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://" + DB_USERNAME + ":" + DB_PASSWORD + "@" + DB_URL + "/" + DB_NAME
     db.init_app(app)
 
-    # Initializes CORS so that the api_tool can talk to the example app
-    # cors.init_app(app)
-
-    # Add users for the example
+    # Add a default user
     with app.app_context():
         db.create_all()
         if db.session.query(Users).filter_by(username=DEFAULT_ACCOUNT_USERNAME).count() < 1:
@@ -364,7 +378,6 @@ def test_auth():
 
 @app.route('/api/refresh', methods=['POST'])
 def refresh():
-    print("refresh request")
     old_token = flask.request.get_data()
     new_token = guard.refresh_jwt_token(old_token)
     ret = {'access_token': new_token}
@@ -372,6 +385,7 @@ def refresh():
 
 
 def generate_pickups_from_repeat_prescriptions():
+    # Checks for repeat prescriptions that have not been converted to medical pickups
     query = db.session.query(repeatprescription).filter_by(pickupcreated=0)
 
     if query.count() > 0:
@@ -421,17 +435,37 @@ def generate_pickup_from_repeat_prescription(repeat_prescription):
 def get_pickups():
     generate_pickups_from_repeat_prescriptions()
     arr = []
-    with app.app_context():
-        for instance in db.session.query(medicalpickups):
-            arr.append({"pickup_id": instance.pickupid,
-                        "patient_id": instance.patientid,
-                        "drug_id": instance.drugid,
-                        "drug_quantity": instance.drugquantity,
-                        "scheduled_date": str(instance.scheduleddate),
-                        "review_date": str(instance.reviewdate),
-                        "is_authorised": statuses[instance.isauthorised],
-                        "pickup_status": instance.pickupstatus})
-        return get_default_response(arr)
+
+    pickup_status = request.args.get("pickup_status")
+    scheduled_before = request.args.get("scheduled_before")
+
+    if pickup_status is None:
+        return get_default_response({"message": "Parameter required: status",
+                                     "status_code": 400}), 400
+
+    if pickup_status not in VALID_PICKUP_STATES:
+        return get_default_response({"message": pickup_status + " Is not a valid status. The list of valid "
+                                                                "status is " + str(VALID_PICKUP_STATES),
+                                     "status_code": 400}), 400
+
+    if scheduled_before is None:
+        return get_default_response({"message": "Parameter required: scheduled_before",
+                                     "status_code": 400}), 400
+
+    query = db.session.query(medicalpickups).filter(
+        medicalpickups.pickupstatus == pickup_status,
+        medicalpickups.scheduleddate <= scheduled_before).order_by(medicalpickups.scheduleddate)
+
+    for instance in query:
+        arr.append({"pickup_id": instance.pickupid,
+                    "patient_id": instance.patientid,
+                    "drug_id": instance.drugid,
+                    "drug_quantity": instance.drugquantity,
+                    "scheduled_date": str(instance.scheduleddate),
+                    "review_date": str(instance.reviewdate),
+                    "is_authorised": statuses[instance.isauthorised],
+                    "pickup_status": instance.pickupstatus})
+    return get_default_response(arr)
 
 
 @app.route('/api/pickup', methods=['GET'])
@@ -464,12 +498,6 @@ def get_pickup():
 @app.route('/api/pickup/status', methods=['PATCH'])
 @flask_praetorian.auth_required
 def update_pickup_status():
-    valid_pickup_states = ["AWAITING_PHARMACIST_AUTHORISATION",
-                           "AWAITING_CONFIRMATION",
-                           "AWAITING_ASSEMBLY",
-                           "AWAITING_COLLECTION",
-                           "COLLECTED"]
-
     if request.args.get("pickup_id") is None:
         return get_default_response({"message": "Parameter required: pickup_id",
                                      "status_code": 400}), 400
@@ -484,9 +512,9 @@ def update_pickup_status():
         return get_default_response({"message": "Field required in JSON body: status",
                                      "status_code": 400}), 400
 
-    if request.json['status'] not in valid_pickup_states:
+    if request.json['status'] not in VALID_PICKUP_STATES:
         return get_default_response({"message": request.json['status'] + " Is not a valid status. This list of valid "
-                                                                         "status are " + str(valid_pickup_states),
+                                                                         "status are " + str(VALID_PICKUP_STATES),
                                      "status_code": 400}), 400
 
     query = db.session.query(medicalpickups).filter_by(pickupid=pickup_id)
@@ -529,8 +557,9 @@ def update_pickup_status():
 @flask_praetorian.auth_required
 def get_drug():
     if request.args.get("drug_id") is None:
-         return get_default_response({"message": "Parameter required: drug_id",
+        return get_default_response({"message": "Parameter required: drug_id",
                                      "status_code": 400}), 400
+
     query = db.session.query(drugs).filter_by(drugid=request.args.get("drug_id"))
     if query.count() < 1:
         return get_default_response({"message": "No drug with that ID could be found",
@@ -670,6 +699,7 @@ def get_sensitivity():
     return get_default_response(return_value)
 
 
+# Code snippet from https://www.afternerd.com/blog/how-to-send-an-email-using-python-and-smtplib/
 def send_email(email_address, message, subject):
     try:
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
@@ -790,6 +820,7 @@ def send_message(pickup_id, message_body):
     except Exception:
         get_default_response({"message": "An error occurred when trying to fetch patient contact details"}), 400
 
+    # Code snippet from https://www.twilio.com/docs/sms/quickstart/python
     client = Client(account_sid, auth_token)
 
     try:
