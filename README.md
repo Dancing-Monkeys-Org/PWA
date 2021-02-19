@@ -1,6 +1,6 @@
 # Running the already deployed version
 
-Release version availible at
+Release version available at
 https://dancingmonkeys.tech/
 
 # Running the Application
