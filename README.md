@@ -1,3 +1,8 @@
+# Running the already deployed version
+
+Release version availible at
+https://dancingmonkeys.tech/
+
 # Running the Application
 
 ## Frontend
@@ -38,20 +43,30 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 ## Backend
 
-Uses Flask: maybe some info here
+### Prerequisites
 
-Navigate to `src/backend/` to install dependencies and run the back end.
+Install python https://www.python.org/downloads/
+If prompted to install Pip, please do so.
+
+Open a command line tool that has python installed. 
+
+Within the command line navigate to `src/backend/` from the root of the project
+
+run pip install -r requirements.txt 
+If successful this will install all python packages required to run the backend
 
 ### Dependencies
 
-Any dependencies, flask and maybe the env variables?
+Specific environment variables must be set for running the API and unittests.
 
-### Installing
+Within the submission there should be a .flaskenv and a .env file which will set these environment variables
 
-Where to add env variables?
+When running the backend make sure that only the .flaskenv file is present in the backend folder
+
+When running the unit tests make sure that only the .env file is present in the backend folder
 
 ### Available Scripts
 
-`flask run` or something?
+To run the Backend simply run 'flask run' on the Python command line 
 
-`test`
+To run the Backend unittests run 'pytest' on the Python command line 
