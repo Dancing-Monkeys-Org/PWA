@@ -12,6 +12,21 @@ import datetime
 from twilio.rest import Client
 import smtplib
 
+""" 
+Title: Setting up & Deploying JWT based auth using Flask & React
+Author: Yasoob Khalid
+Date: 12.01.2021
+Availability: 
+https://yasoob.me/posts/how-to-setup-and-deploy-jwt-auth-using-react-and-flask/
+comment:
+This tutorial was used to implement the token based login system.
+
+We chose to use a tutorial for this rather than write it from 
+scratch as we believe this will greatly improve the security of the system.
+
+No members of the team are security experts or have had experience with writing a backend authentication systems so 
+writing this from scratch would likely make the system vulnerable
+"""
 
 statuses = ["unauthorised", "authorised"]
 
@@ -544,7 +559,7 @@ def get_drug():
     if request.args.get("drug_id") is None:
         return get_default_response({"message": "Parameter required: drug_id",
                                      "status_code": 400}), 400
-    
+
     query = db.session.query(drugs).filter_by(drugid=request.args.get("drug_id"))
     if query.count() < 1:
         return get_default_response({"message": "No drug with that ID could be found",
@@ -684,6 +699,7 @@ def get_sensitivity():
     return get_default_response(return_value)
 
 
+# Code snippet from https://www.afternerd.com/blog/how-to-send-an-email-using-python-and-smtplib/
 def send_email(email_address, message, subject):
     try:
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
@@ -804,6 +820,7 @@ def send_message(pickup_id, message_body):
     except Exception:
         get_default_response({"message": "An error occurred when trying to fetch patient contact details"}), 400
 
+    # Code snippet from https://www.twilio.com/docs/sms/quickstart/python
     client = Client(account_sid, auth_token)
 
     try:
