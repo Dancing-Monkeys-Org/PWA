@@ -53,6 +53,7 @@ Open a command line tool that has python installed.
 Within the command line navigate to `src/backend/` from the root of the project
 
 run pip install -r requirements.txt 
+
 If successful this will install all python packages required to run the backend
 
 ### Dependencies
