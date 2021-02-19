@@ -18,8 +18,6 @@ const routes = () => {
       path: 'app',
       element: loginStatus ? <DashboardLayout /> : <LoginView />,
       children: [
-        { path: 'patients', element: <PatientListView /> },
-        { path: 'dashboard', element: <DashboardView /> },
         { path: 'pickups', element: <PickupListView /> },
         { path: 'pickup/:id', element: <PickupView />},
         { path: '*', element: <Navigate to="/404" /> }
@@ -27,11 +25,10 @@ const routes = () => {
     },
     {
       path: '/',
-      element: loginStatus ? <MainLayout /> : <LoginView />,
+      element: loginStatus ? <DashboardLayout /> : <LoginView />,
       children: [
         { path: 'login', element: <LoginView /> },
         { path: '404', element: <NotFoundView /> },
-        { path: '/', element: <Navigate to="/app/dashboard" /> },
         { path: '*', element: <Navigate to="/404" /> }
       ]
     }
