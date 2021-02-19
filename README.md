@@ -53,7 +53,7 @@ Open a command line tool that has python installed.
 
 Within the command line navigate to `src/backend/` from the root of the project
 
-run pip install -r requirements.txt 
+run `pip install -r requirements.txt`
 
 If successful this will install all python packages required to run the backend
 
@@ -69,6 +69,6 @@ When running the unit tests make sure that only the .env file is present in the 
 
 ### Available Scripts
 
-To run the Backend simply run 'flask run' on the Python command line 
+To run the Backend simply run `flask run` on the Python command line 
 
-To run the Backend unittests run 'pytest' on the Python command line 
+To run the Backend unittests run `pytest` on the Python command line 
