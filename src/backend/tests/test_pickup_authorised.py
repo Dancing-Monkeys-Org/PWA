@@ -48,13 +48,13 @@ def foreign_key_entries(db):
                        '("test3", "Blood test 3");')
 
 
-def test_not_authorised(client):
+def test_user_not_authorised(client):
     res = client.get("/api/pickup/authorised")
     assert res.status_code == 401
     assert "patient_id" not in str(res.json)
 
 
-def test_pickup_no_pickup_id(client, db):
+def test_no_pickup_id_parameter(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
     res = client.get("/api/pickup/authorised", headers={'Authorization': "Bearer " + token})
@@ -64,7 +64,7 @@ def test_pickup_no_pickup_id(client, db):
     assert "forename" not in str(res.json)
 
 
-def test_no_required_tests(client, db):
+def test_pickup_has_no_required_tests(client, db):
     foreign_key_entries(db)
 
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")

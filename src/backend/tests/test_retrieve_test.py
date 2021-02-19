@@ -7,7 +7,7 @@ def test_not_authorised(client):
     assert "test_id" not in str(res.json)
 
 
-def test_no_test_id(client, db):
+def test_no_test_id_parameter(client, db):
     # Record to accommodate for foreign key constraints
     # db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
     # Record that should not be returned
@@ -22,7 +22,7 @@ def test_no_test_id(client, db):
     assert "name" not in str(res.json)
 
 
-def test_no_pickups_to_return(client, db):
+def test_no_tests_to_return(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
     res = client.get("/api/test", headers={'Authorization': "Bearer " + token},
@@ -48,7 +48,7 @@ def test_id_not_found(client, db):
     assert res.status_code == 404
 
 
-def test_retrieve_test(client, db):
+def test_successfully_retrieved_tests(client, db):
     # Record to accommodate for foreign key constraints
     db.session.execute('INSERT INTO drugs () VALUES ("drugUUID", "Drug 1")')
     # Record that should be returned

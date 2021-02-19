@@ -66,7 +66,7 @@ def test_invalid_role(client, db):
     assert "Successfully" not in str(res.json)
 
 
-def test_no_pickup_id(client, db):
+def test_no_pickup_id_parameter(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "pharmacist")
 
     res = client.patch("/api/pickup/status", headers={'Authorization': "Bearer " + token},
@@ -77,7 +77,7 @@ def test_no_pickup_id(client, db):
     assert "Successfully" not in str(res.json)
 
 
-def test_no_body(client, db):
+def test_no_request_body(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "pharmacist")
 
     res = client.patch("/api/pickup/status", headers={'Authorization': "Bearer " + token},
@@ -126,7 +126,7 @@ def test_invalid_status(client, db):
     assert "Successfully" not in str(res.json)
 
 
-def test_drug_requirements_not_passed(client, db):
+def test_drug_requirements_not_met(client, db):
     foreign_key_entries(db)
 
     db.session.execute('INSERT INTO requiredtests () VALUES'
@@ -147,7 +147,7 @@ def test_drug_requirements_not_passed(client, db):
     assert "Successfully" not in str(res.json)
 
 
-def test_update_status(client, db):
+def test_successfully_update_status(client, db):
     foreign_key_entries(db)
 
     db.session.execute('INSERT INTO requiredtests () VALUES'

@@ -3,11 +3,17 @@ import {
   Box,
   Container,
   Grid,
+  Select,
+  Typography,
   makeStyles
 } from '@material-ui/core';
 import Page from 'components/Page';
 import Toolbar from './Toolbar';
 import PickupCard from './PickupCard';
+import FormControl from '@material-ui/core/FormControl';
+import DatePicker from "react-datepicker";
+
+import "react-datepicker/dist/react-datepicker.css";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,6 +29,7 @@ const useStyles = makeStyles((theme) => ({
 
 const PickupListView = () => {
   const classes = useStyles();
+  const [filter, setFilter ] = useState({ date: new Date(), status: "AWAITING_PHARMACIST_AUTHORISATION" });
   const [pickups, updatePickups] = useState([]);
 
   const loginVal = JSON.parse(localStorage.getItem("login"));
@@ -41,13 +48,43 @@ const PickupListView = () => {
         });
   }, []);
 
+  const handleChange = (event) => { 
+    setFilter({...filter, status: event.target.value});
+  }
+
   return (
     <Page
       className={classes.root}
       title="Pick Ups"
     >
       <Container maxWidth={false}>
-        <Toolbar />
+        <Box mt={3}>
+          <Typography variant="h4">
+            Scheduled Date:
+            <DatePicker selected={filter.date} onChange={date => setFilter({...filter, date: date})} />
+          </Typography>
+            <Typography variant="h4">
+                Status:             
+                <FormControl className={classes.formControl}>
+                    <Select
+                      native
+                      value={filter.status}
+                      onChange={handleChange}
+                      inputProps={{
+                        name: 'status',
+                        id: 'pre-status',
+                      }}
+                    >
+                      <option aria-label="None" value="" />
+                      <option value={"AWAITING_PHARMACIST_AUTHORISATION"}>Awaiting Pharmacist Authorisation</option>
+                      <option value={"AWAITING_CONFIRMATION"}>Awaiting Confirmation</option>
+                      <option value={"AWAITING_ASSEMBLY"}>Awaiting Assembly</option>
+                      <option value={"AWAITING_COLLECTION"}>Awaiting Collection</option>
+                      <option value={"COLLECTED"}>Collected</option>
+                    </Select>
+                </FormControl>
+              </Typography>
+            </Box>
         <Box mt={3}>
           <Grid
             container
