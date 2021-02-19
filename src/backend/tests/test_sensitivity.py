@@ -7,7 +7,7 @@ def test_not_authorised(client):
     assert "sensitivity_id" not in str(res.json)
 
 
-def test_sensitivity_no_sensitivity_id(client, db):
+def test_no_sensitivity_id_parameter(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
     res = client.get("/api/sensitivity", headers={'Authorization': "Bearer " + token})
@@ -51,7 +51,7 @@ def test_sensitivity_id_not_found(client, db):
     assert res.status_code == 404
 
 
-def test_sensitivity(client, db):
+def test_sensitivity_successfully_retrieved(client, db):
     # Record that should not be returned
     db.session.execute('INSERT INTO sensitivities() '
                        'VALUES'

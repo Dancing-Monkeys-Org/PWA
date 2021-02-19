@@ -7,7 +7,7 @@ def test_not_authorised(client):
     assert "contact_id" not in str(res.json)
 
 
-def test_contact_no_contact_id(client, db):
+def test_contact_no_contact_id_parameter(client, db):
     # Record that should not be returned
     db.session.execute(
         'INSERT INTO contactdetails () VALUES ("contactDetailUUID", 12345678910, "email1", "addressline11", null,'
@@ -22,7 +22,7 @@ def test_contact_no_contact_id(client, db):
     assert "phone_number" not in str(res.json)
 
 
-def test_no_pickups_to_return(client, db):
+def test_no_contacts_to_return(client, db):
     token = auth.get_access_token(client, db, "test_user", "test_password", "technician")
 
     res = client.get("/api/contact", headers={'Authorization': "Bearer " + token},
