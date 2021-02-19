@@ -12,6 +12,7 @@ import Toolbar from './Toolbar';
 import PickupCard from './PickupCard';
 import FormControl from '@material-ui/core/FormControl';
 import DatePicker from "react-datepicker";
+import moment from 'moment';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -36,7 +37,7 @@ const PickupListView = () => {
   const token = loginVal.token;
 
   React.useEffect(function effectFunction() {
-    fetch('https://dancingmonkeys.tech/api/pickups', { 
+    fetch('https://dancingmonkeys.tech/api/pickups?scheduled_before=' + moment(filter.date).format('YYYY-MM-DD') + '&pickup_status=' + filter.status, { 
           headers:  {
             'Authorization': `Bearer ${token}`,
             'Accept': '*/*'
@@ -46,7 +47,7 @@ const PickupListView = () => {
         .then(data => {
           updatePickups(data);
         });
-  }, []);
+  }, [filter]);
 
   const handleChange = (event) => { 
     setFilter({...filter, status: event.target.value});
