@@ -46,6 +46,7 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 ### Prerequisites
 
 Install python https://www.python.org/downloads/
+
 If prompted to install Pip, please do so.
 
 Open a command line tool that has python installed. 
